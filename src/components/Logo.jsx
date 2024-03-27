@@ -1,0 +1,18 @@
+import React from 'react';
+import { BorderLeftOutlined } from '@ant-design/icons';
+
+const Logo = ({ collapsed }) => {
+    return (
+        <div className="logo">
+            {collapsed ? (
+                <div className="logo-icon">
+                 <BorderLeftOutlined />
+                </div>
+            ) : (
+                <div className="logo-text">Escalacon</div>
+            )}
+        </div>
+    );
+};
+
+export default Logo;
