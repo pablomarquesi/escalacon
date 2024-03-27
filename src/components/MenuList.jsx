@@ -8,7 +8,8 @@ import {
     BankOutlined,
     PushpinOutlined,
     VideoCameraOutlined,
-    EnvironmentOutlined
+    EnvironmentOutlined,
+    SettingOutlined
     
 } from '@ant-design/icons';
 
@@ -41,6 +42,13 @@ const MenuList = ({ darkTheme, onMenuClick }) => {
             <Menu.Item key="comarca" icon={<BankOutlined />}>Comarca</Menu.Item> 
             <Menu.Item key="juizado" icon={<PushpinOutlined />}>Juizado</Menu.Item>
             <Menu.Item key="salavirtual" icon={<VideoCameraOutlined />}>Sala Virtual</Menu.Item> 
+        </Menu.SubMenu>
+        <Menu.SubMenu
+            key="configuracoes"
+            icon={<SettingOutlined />}
+            title="Configuracoes"
+        >
+            <Menu.Item key="usuarios" icon={<UserOutlined />}>Usuários</Menu.Item> 
         </Menu.SubMenu>
     </Menu>
   );

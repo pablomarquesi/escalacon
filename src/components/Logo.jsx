@@ -9,7 +9,7 @@ const Logo = ({ collapsed }) => {
                  <BorderLeftOutlined />
                 </div>
             ) : (
-                <div className="logo-text">Escalacon</div>
+                <div className="logo-text">EscalaCon</div>
             )}
         </div>
     );
