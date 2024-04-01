@@ -1,4 +1,3 @@
-// src/CadastroConciliador.jsx
 import React, { useState, useEffect } from 'react';
 import { Button, Modal, Form, Input, DatePicker, Select, Table } from 'antd';
 import { PlusOutlined, DeleteOutlined, StopOutlined } from '@ant-design/icons';
@@ -6,13 +5,13 @@ import moment from 'moment';
 import { fetchConciliadores, fetchMunicipios, saveConciliador } from "../services/conciliadorService";
 import getTableColumns from "../config/tableColumns";
 
-
 const CadastroConciliador = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [conciliadores, setConciliadores] = useState([]);
   const [municipios, setMunicipios] = useState([]);
   const [form] = Form.useForm();
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [searchText, setSearchText] = useState('');
 
   useEffect(() => {
     const initData = async () => {
@@ -21,9 +20,32 @@ const CadastroConciliador = () => {
       setConciliadores(conciliadoresData);
       setMunicipios(municipiosData);
     };
-
     initData();
   }, []);
+
+  const handleEdit = (record) => {
+    form.setFieldsValue({
+      ...record,
+      data_credenciamento: record.data_credenciamento ? moment(record.data_credenciamento) : null,
+    });
+    setIsModalVisible(true);
+  };
+
+  const columns = getTableColumns(handleEdit);
+
+  const handleSearch = (e) => {
+    const value = e.target.value.toLowerCase();
+    setSearchText(value);
+  };
+  
+  const filteredConciliadores = searchText
+    ? conciliadores.filter((conciliador) =>
+        Object.keys(conciliador).some((key) =>
+          String(conciliador[key]).toLowerCase().includes(searchText)
+        )
+      )
+    : conciliadores;
+  
 
   const onSelectChange = selectedKeys => {
     setSelectedRowKeys(selectedKeys);
@@ -43,12 +65,11 @@ const CadastroConciliador = () => {
     form.resetFields();
   };
 
-  const handleSubmit = async values => {
+  const handleSubmit = async (values) => {
     const formattedValues = {
       ...values,
       data_credenciamento: values.data_credenciamento ? moment(values.data_credenciamento).format('YYYY-MM-DD') : null,
     };
-
     try {
       await saveConciliador(formattedValues);
       setIsModalVisible(false);
@@ -63,35 +84,59 @@ const CadastroConciliador = () => {
     form.resetFields();
   };
 
-  const handleEdit = (record) => {
-    form.setFieldsValue({
-      ...record,
-      data_credenciamento: record.data_credenciamento ? moment(record.data_credenciamento) : null,
-    });
-    setIsModalVisible(true);
+
+    // Função que chama a API para excluir conciliadores
+  const deleteConciliadores = async (selectedIds) => {
+    try {
+      await Promise.all(selectedIds.map(id => fetch(`/api/conciliadores/${id}`, { method: 'DELETE' })));
+      // Recarrega os conciliadores após a exclusão
+      setConciliadores(await fetchConciliadores());
+    } catch (error) {
+      console.error('Erro ao excluir conciliadores:', error);
+      // Trate o erro conforme necessário
+    }
   };
 
-  const columns = getTableColumns(handleEdit);
+  // Função chamada ao clicar no botão de excluir
+  const showDeleteConfirm = () => {
+    Modal.confirm({
+      title: 'Tem certeza que deseja excluir os conciliadores selecionados?',
+      content: 'Esta ação não pode ser desfeita',
+      okText: 'Sim, excluir',
+      okType: 'danger',
+      cancelText: 'Não',
+      onOk() {
+        deleteConciliadores(selectedRowKeys);
+        setSelectedRowKeys([]); // Limpa a seleção
+      },
+    });
+  };
 
+  
   return (
     <>
-      <h1>Conciliadores</h1>
-      <Button icon={<PlusOutlined />} onClick={() => {
-        form.resetFields();
-        setIsModalVisible(true);
-      }} style={{ marginRight: 8 }}>
-        Adicionar
-      </Button>
-      <Button icon={<DeleteOutlined />} style={{ marginRight: 8 }}>
-        Excluir
-      </Button>
-      <Button icon={<StopOutlined />}>
-        Inativar
-      </Button>
-      <div className="table-container">
-      <div className="table-container">
-        <Table dataSource={conciliadores} columns={columns} rowSelection={rowSelection} rowKey="conciliador_id" />
+      <div className="header-container">
+        <h3>Relação de Conciliadores</h3>
+        <Input placeholder="Buscar..." onChange={handleSearch} style={{ marginRight: 8, width: '40%' }} />
+        <div className="button-group">
+          <Button icon={<PlusOutlined />} onClick={() => {
+            form.resetFields();
+            setIsModalVisible(true);
+          }} style={{ marginRight: 8 }}>
+            Adicionar
+          </Button>
+          <Button icon={<DeleteOutlined />} onClick={showDeleteConfirm} style={{ marginRight: 8 }}>
+            Excluir
+          </Button>
+          <Button icon={<StopOutlined />}>
+            Inativar
+          </Button>
+        </div>
       </div>
+      <div className="table-container">
+        <div className="table-container">
+          <Table dataSource={filteredConciliadores} columns={columns} rowSelection={rowSelection} rowKey="conciliador_id" />
+        </div>
       </div>
       
       <Modal title="Cadastro de Conciliador" visible={isModalVisible} onCancel={handleCancel} footer={null}>

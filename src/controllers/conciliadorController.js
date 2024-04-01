@@ -59,3 +59,26 @@ export async function addConciliador(req, res) {
         res.status(500).json({ error: 'Erro no servidor ao adicionar conciliador' });
     }
 }
+
+// Função para excluir conciliadores pelo ID
+export async function deleteConciliadores(req, res) {
+    const { ids } = req.body;
+
+    // Constrói a lista de placeholders para a query
+    const placeholders = ids.map(() => '?').join(',');
+    try {
+        const result = await db.query(`
+            DELETE FROM conciliador WHERE conciliador_id IN (${placeholders})
+        `, ids);
+
+        if (result.affectedRows > 0) {
+            res.json({ message: "Conciliadores excluídos com sucesso.", affectedRows: result.affectedRows });
+        } else {
+            res.status(404).json({ message: "Conciliadores não encontrados." });
+        }
+    } catch (error) {
+        console.error('Erro ao excluir conciliadores:', error);
+        res.status(500).json({ error: 'Erro no servidor ao excluir conciliadores' });
+    }
+}
+

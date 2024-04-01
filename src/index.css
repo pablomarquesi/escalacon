@@ -15,9 +15,8 @@
 
 .header {
   background-color: #fff;
-  color: white; /* Altera a cor do texto para branco */
+  color: white;
 }
-
 
 .logo {
   display: flex;
@@ -49,7 +48,7 @@
 }
 
 .toggle-theme-btn{
-  position:absolute;
+  position:fixed;
   bottom: 30px;
   left: 20px;
   display: flex;
@@ -71,5 +70,37 @@
 }
 
 .table-container {
-  margin-top: 20px;
+  margin-top: 5px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  width: 40px;
+}
+
+.logo-icon img {
+  max-width: 100%;
+  max-height: 100%;
+  display: block; 
+}
+
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center; 
+  margin-bottom: 20px;
+}
+
+.button-group {
+  display: flex;
+  justify-content: flex-end;
 }

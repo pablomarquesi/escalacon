@@ -1,12 +1,12 @@
 import React from 'react';
-import { BorderLeftOutlined } from '@ant-design/icons';
+import logoIcon from '../assets/logo-icon.png';
 
 const Logo = ({ collapsed }) => {
     return (
         <div className="logo">
             {collapsed ? (
                 <div className="logo-icon">
-                 <BorderLeftOutlined />
+                    <img src={logoIcon} alt="Logo" />
                 </div>
             ) : (
                 <div className="logo-text">EscalaCon</div>

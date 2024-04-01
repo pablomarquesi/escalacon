@@ -13,14 +13,13 @@ import {
     
 } from '@ant-design/icons';
 
-// Agora aceitamos um prop 'onMenuClick' para notificar sobre cliques de menu
 const MenuList = ({ darkTheme, onMenuClick }) => {
   return (
     <Menu
       theme={darkTheme ? 'dark' : 'light'}
       mode='inline'
       className='menu-bar'
-      onClick={onMenuClick} // Agora chamamos onMenuClick quando um item de menu é clicado
+      onClick={onMenuClick}
     >
         <Menu.Item key="home" icon={<CalendarOutlined />}>
             Escala
