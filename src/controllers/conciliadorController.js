@@ -42,6 +42,7 @@ export async function fetchComarcas(req, res) {
 
 // Função para adicionar um novo conciliador no banco de da
 export async function addConciliador(req, res) {
+    console.log(req.body);
     const { matricula, nome_conciliador, cpf, telefone, email, comarca_id, data_credenciamento } = req.body;
     try {
         const result = await db.query(`
@@ -49,6 +50,8 @@ export async function addConciliador(req, res) {
             VALUES (?, ?, ?, ?, ?, ?, ?)
         `, [matricula, nome_conciliador, cpf, telefone, email, comarca_id, data_credenciamento]);
 
+        console.log(result);
+        console.log('resulta log');
         if (result.affectedRows > 0) {
             res.status(201).json({ message: "Conciliador adicionado com sucesso." });
         } else {
@@ -62,20 +65,23 @@ export async function addConciliador(req, res) {
 
 // Função para excluir conciliadores pelo ID
 export async function deleteConciliadores(req, res) {
-    const { ids } = req.body;
-
+    const { id } = req.params;
+    console.log(id);
     // Constrói a lista de placeholders para a query
-    const placeholders = ids.map(() => '?').join(',');
+    // const placeholders = ids.map(() => '?').join(',');
     try {
         const result = await db.query(`
-            DELETE FROM conciliador WHERE conciliador_id IN (${placeholders})
-        `, ids);
+            DELETE FROM conciliador WHERE conciliador_id = ${id}
+        `);
 
-        if (result.affectedRows > 0) {
-            res.json({ message: "Conciliadores excluídos com sucesso.", affectedRows: result.affectedRows });
-        } else {
-            res.status(404).json({ message: "Conciliadores não encontrados." });
-        }
+        if (result.length > 0) {                        
+            if (result[0].affectedRows > 0) {
+                console.log('affectedRows');
+                res.json({ message: "Conciliadores excluídos com sucesso.", affectedRows: result[0].affectedRows });
+            } else {
+                res.status(404).json({ message: "Conciliadores não encontrados." });
+            }
+        }        
     } catch (error) {
         console.error('Erro ao excluir conciliadores:', error);
         res.status(500).json({ error: 'Erro no servidor ao excluir conciliadores' });
