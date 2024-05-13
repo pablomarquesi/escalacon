@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Button, Modal, Form, Input, DatePicker, Select, Table } from 'antd';
-import { PlusOutlined, DeleteOutlined, StopOutlined } from '@ant-design/icons';
+import { DeleteOutlined, PlusOutlined, StopOutlined } from '@ant-design/icons';
+import { Button, DatePicker, Form, Input, Modal, Select, Table } from 'antd';
 import moment from 'moment';
-import { fetchConciliadores, fetchMunicipios, saveConciliador } from "../services/conciliadorService";
+import React, { useEffect, useState } from 'react';
 import getTableColumns from "../config/tableColumns";
+import { deleteConciliadorService, fetchConciliadores, fetchMunicipios, saveConciliador } from "../services/conciliadorService";
 
 const CadastroConciliador = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -88,7 +88,9 @@ const CadastroConciliador = () => {
     // Função que chama a API para excluir conciliadores
   const deleteConciliadores = async (selectedIds) => {
     try {
-      await Promise.all(selectedIds.map(id => fetch(`/api/conciliadores/${id}`, { method: 'DELETE' })));
+      console.log(selectedIds);
+      await deleteConciliadorService(selectedIds)
+      // await Promise.all(selectedIds.map(id => fetch(`/api/conciliadores/${id}`, { method: 'DELETE' })));
       // Recarrega os conciliadores após a exclusão
       setConciliadores(await fetchConciliadores());
     } catch (error) {
@@ -144,7 +146,7 @@ const CadastroConciliador = () => {
           <Form.Item name="matricula" label="Matrícula" rules={[{ required: true, message: 'Insira a matrícula!' }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="nome" label="Nome" rules={[{ required: true, message: 'Insira o nome!' }]}>
+          <Form.Item name="nome_conciliador" label="Nome" rules={[{ required: true, message: 'Insira o nome!' }]}>
             <Input />
           </Form.Item>
           <Form.Item name="cpf" label="CPF" rules={[{ required: true, message: 'Insira o CPF!' }]}>

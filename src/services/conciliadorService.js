@@ -16,3 +16,8 @@ export const saveConciliador = async (conciliador) => {
   const response = await axios.post(`${API_URL}/conciliadores`, conciliador);
   return response.data;
 };
+
+export const deleteConciliadorService = async (id) => {
+  const response = await axios.delete(`${API_URL}/conciliadores/${id}`);
+  return response.data;
+};

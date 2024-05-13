@@ -1,9 +1,13 @@
-import { testDbConnection, fetchConciliadores, fetchComarcas, addConciliador, deleteConciliadores } from '../controllers/conciliadorController.js';
+import { addConciliador, deleteConciliadores, fetchComarcas, fetchConciliadores, testDbConnection } from '../controllers/conciliadorController.js';
 
 export function registerApiRoutes(app) {
     app.get('/testdb', testDbConnection);
+    
     app.get('/api/conciliadores', fetchConciliadores);
-    app.get('/api/comarcas', fetchComarcas);
+    // app.get('/api/conciliadores/:id', getByIdConciliadores);
+    // app.put('/api/conciliadores', updateConciliadores);
     app.post('/api/conciliadores', addConciliador);
-    router.post('/conciliadores/delete', deleteConciliadores);
+    app.delete('/api/conciliadores/:id', deleteConciliadores);
+    
+    app.get('/api/comarcas', fetchComarcas);
 }
