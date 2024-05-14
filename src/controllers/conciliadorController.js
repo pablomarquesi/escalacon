@@ -1,6 +1,6 @@
 import db from '../config/database.js';
 
-// Função para testar a conexão com o banco de dados MySQ
+// Função para testar a conexão com o banco de dados MySQL
 export async function testDbConnection(req, res) {
     try {
         const [rows] = await db.query('SELECT 1 + 1 AS solution');
@@ -20,7 +20,8 @@ export async function fetchConciliadores(req, res) {
                    com.nome_comarca 
             FROM conciliador AS conc 
             INNER JOIN comarca AS com 
-            ON conc.comarca_id = com.comarca_id;
+            ON conc.comarca_id = com.comarca_id
+            ORDER BY conc.nome_conciliador ASC;
         `);
         res.json(conciliadores);
     } catch (error) {
@@ -40,9 +41,26 @@ export async function fetchComarcas(req, res) {
     }
 }
 
-// Função para adicionar um novo conciliador no banco de da
+
+// Função para verificar se um conciliador já existe com base no CPF
+export async function checkConciliadorExists(req, res) {
+    const { cpf } = req.params;
+    try {
+        const [result] = await db.query('SELECT cpf FROM conciliador WHERE cpf = ?', [cpf]);
+        if (result.length > 0) {
+            res.status(200).json({ exists: true });
+        } else {
+            res.status(200).json({ exists: false });
+        }
+    } catch (error) {
+        console.error('Erro ao verificar existência de conciliador:', error);
+        res.status(500).json({ error: 'Erro no servidor ao verificar existência de conciliador' });
+    }
+}
+
+// Função para adicionar um novo conciliador no banco de dados
 export async function addConciliador(req, res) {
-    console.log(req.body);
+    console.log('Dados recebidos para adicionar:', req.body);
     const { matricula, nome_conciliador, cpf, telefone, email, comarca_id, data_credenciamento } = req.body;
     try {
         const result = await db.query(`
@@ -50,9 +68,8 @@ export async function addConciliador(req, res) {
             VALUES (?, ?, ?, ?, ?, ?, ?)
         `, [matricula, nome_conciliador, cpf, telefone, email, comarca_id, data_credenciamento]);
 
-        console.log(result);
-        console.log('resulta log');
-        if (result.affectedRows > 0) {
+        console.log('Resultado da query:', result);
+        if (result[0].affectedRows > 0) {
             res.status(201).json({ message: "Conciliador adicionado com sucesso." });
         } else {
             res.status(400).json({ message: "Não foi possível adicionar o conciliador." });
@@ -63,28 +80,45 @@ export async function addConciliador(req, res) {
     }
 }
 
-// Função para excluir conciliadores pelo ID
-export async function deleteConciliadores(req, res) {
+// Função para atualizar um conciliador no banco de dados
+export async function updateConciliador(req, res) {
+    console.log('Dados recebidos para atualizar:', req.body);
     const { id } = req.params;
-    console.log(id);
-    // Constrói a lista de placeholders para a query
-    // const placeholders = ids.map(() => '?').join(',');
+    const { matricula, nome_conciliador, cpf, telefone, email, comarca_id, data_credenciamento } = req.body;
     try {
         const result = await db.query(`
-            DELETE FROM conciliador WHERE conciliador_id = ${id}
-        `);
+            UPDATE conciliador 
+            SET matricula = ?, nome_conciliador = ?, cpf = ?, telefone = ?, email = ?, comarca_id = ?, data_credenciamento = ?
+            WHERE conciliador_id = ?
+        `, [matricula, nome_conciliador, cpf, telefone, email, comarca_id, data_credenciamento, id]);
 
-        if (result.length > 0) {                        
-            if (result[0].affectedRows > 0) {
-                console.log('affectedRows');
-                res.json({ message: "Conciliadores excluídos com sucesso.", affectedRows: result[0].affectedRows });
-            } else {
-                res.status(404).json({ message: "Conciliadores não encontrados." });
-            }
-        }        
+        console.log('Resultado da query:', result);
+        if (result[0].affectedRows > 0) {
+            res.status(200).json({ message: "Conciliador atualizado com sucesso." });
+        } else {
+            res.status(400).json({ message: "Não foi possível atualizar o conciliador." });
+        }
     } catch (error) {
-        console.error('Erro ao excluir conciliadores:', error);
-        res.status(500).json({ error: 'Erro no servidor ao excluir conciliadores' });
+        console.error('Erro ao atualizar conciliador:', error);
+        res.status(500).json({ error: 'Erro no servidor ao atualizar conciliador' });
     }
 }
 
+// Função para excluir conciliadores pelo ID
+export async function deleteConciliadores(req, res) {
+    const { id } = req.params;
+    try {
+        const result = await db.query(`
+            DELETE FROM conciliador WHERE conciliador_id = ?
+        `, [id]);
+
+        if (result[0].affectedRows > 0) {
+            res.status(200).json({ message: "Conciliador excluído com sucesso." });
+        } else {
+            res.status(404).json({ message: "Conciliador não encontrado." });
+        }
+    } catch (error) {
+        console.error('Erro ao excluir conciliador:', error);
+        res.status(500).json({ error: 'Erro no servidor ao excluir conciliador' });
+    }
+}

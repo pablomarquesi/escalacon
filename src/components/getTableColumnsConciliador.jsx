@@ -1,22 +1,17 @@
 import React from 'react';
-import { Button } from 'antd';
-import { EditOutlined } from '@ant-design/icons';
+import { Button, Popconfirm } from 'antd';
+import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import moment from 'moment';
 
 const formatCPF = cpf => {
-  return cpf
-    ? cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
-    : '';
+  return cpf ? cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') : '';
 };
 
 const formatPhone = phone => {
-  return phone
-    ? phone.replace(/(\d{2})(\d{4,5})(\d{4})/, '($1) $2-$3')
-    : '';
+  return phone ? phone.replace(/(\d{2})(\d{4,5})(\d{4})/, '($1) $2-$3') : '';
 };
 
-
-const getTableColumns = (onEdit) => [
+const getTableColumns = (onEdit, onDelete) => [
   {
     title: 'Matrícula',
     dataIndex: 'matricula',
@@ -66,12 +61,25 @@ const getTableColumns = (onEdit) => [
     title: 'Ação',
     key: 'acao',
     render: (_, record) => (
-      <Button
-        icon={<EditOutlined />}
-        onClick={() => onEdit(record)}
-        type="primary"
-      >
-      </Button>
+      <span>
+        <Button
+          icon={<EditOutlined />}
+          onClick={() => onEdit(record)}
+          type="default"
+          style={{ marginRight: 8 }}
+        />
+        <Popconfirm
+          title="Tem certeza que deseja excluir este conciliador?"
+          onConfirm={() => onDelete(record.conciliador_id)}
+          okText="Sim"
+          cancelText="Não"
+        >
+          <Button
+            icon={<DeleteOutlined />}
+            type="default"
+          />
+        </Popconfirm>
+      </span>
     ),
   },
 ];

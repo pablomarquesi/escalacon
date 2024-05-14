@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Button, Layout } from 'antd';
+import { Layout, Button } from 'antd';
 import { MenuUnfoldOutlined, MenuFoldOutlined } from '@ant-design/icons';
 import Logo from './components/Logo';
 import MenuList from './components/MenuList';
 import ToggleThemeButton from './components/ToggleThemeButton';
 import CadastroConciliador from './components/CadastroConciliador';
+import CadastroStatus from './components/CadastroStatus';  // Importe o novo componente
 
 const { Header, Sider, Content } = Layout;
 
@@ -26,6 +27,8 @@ function App() {
     switch (activeMenu) {
       case 'conciliador':
         return <CadastroConciliador />;
+      case 'status':  // Novo caso para o componente CadastroStatus
+        return <CadastroStatus />;
       default:
         return <div>Selecione uma opção do menu</div>;
     }
