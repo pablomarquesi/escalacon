@@ -118,7 +118,17 @@ const CadastroConciliador = () => {
                 </div>
             </div>
             <div className="table-container">
-                <Table dataSource={filteredConciliadores} columns={columns} rowKey="conciliador_id" />
+                <Table 
+                    dataSource={filteredConciliadores} 
+                    columns={columns} 
+                    rowKey="conciliador_id"
+                    pagination={{
+                        pageSizeOptions: ['10', '20', '50', '100'], // Opções de quantidade de registros por página
+                        showSizeChanger: true, // Mostrar opção para mudar a quantidade de registros por página
+                        defaultPageSize: 10, // Quantidade padrão de registros por página
+                        showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} itens` // Mostrar total de itens
+                    }}
+                />
             </div>
             <ConciliadorModal
                 isVisible={isModalVisible}
