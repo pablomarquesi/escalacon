@@ -3,32 +3,46 @@ import axios from 'axios';
 const API_URL = 'http://localhost:3000/api';
 
 export const fetchConciliadores = async () => {
-  const response = await axios.get(`${API_URL}/conciliadores`);
-  console.log('fetchConciliadores response:', response.data);
-  return response.data;
-};
-
-export const fetchMunicipios = async () => {
-  const response = await axios.get(`${API_URL}/comarcas`);
-  console.log('fetchMunicipios response:', response.data);
-  return response.data;
+    try {
+        const response = await axios.get(`${API_URL}/conciliadores`);
+        return response.data;
+    } catch (error) {
+        console.error('Erro ao buscar conciliadores:', error);
+        throw error;
+    }
 };
 
 export const saveConciliador = async (conciliador) => {
-  console.log('Dados enviados para salvar:', conciliador);
-  if (conciliador.conciliador_id) {
-    const response = await axios.put(`${API_URL}/conciliadores/${conciliador.conciliador_id}`, conciliador);
-    console.log('saveConciliador PUT response:', response.data);
-    return response.data;
-  } else {
-    const response = await axios.post(`${API_URL}/conciliadores`, conciliador);
-    console.log('saveConciliador POST response:', response.data);
-    return response.data;
-  }
+    try {
+        if (conciliador.conciliador_id) {
+            const response = await axios.put(`${API_URL}/conciliadores/${conciliador.conciliador_id}`, conciliador);
+            return response.data;
+        } else {
+            const response = await axios.post(`${API_URL}/conciliadores`, conciliador);
+            return response.data;
+        }
+    } catch (error) {
+        console.error('Erro ao salvar conciliador:', error);
+        throw error;
+    }
 };
 
 export const deleteConciliadorService = async (id) => {
-  const response = await axios.delete(`${API_URL}/conciliadores/${id}`);
-  console.log('deleteConciliadorService response:', response.data);
-  return response.data;
+    try {
+        const response = await axios.delete(`${API_URL}/conciliadores/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error('Erro ao excluir conciliador:', error);
+        throw error;
+    }
+};
+
+export const fetchMunicipios = async () => {
+    try {
+        const response = await axios.get(`${API_URL}/comarcas`);
+        return response.data;
+    } catch (error) {
+        console.error('Erro ao buscar municípios:', error);
+        throw error;
+    }
 };

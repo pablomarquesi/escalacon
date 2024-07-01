@@ -1,18 +1,15 @@
 import React from 'react';
 import { Button, DatePicker, Form, Input, Modal, Select } from 'antd';
 import moment from 'moment';
-import InputMask from 'react-input-mask'; // Importando o InputMask para máscaras
+import InputMask from 'react-input-mask';
 
 const ConciliadorModal = ({ isVisible, onCancel, onSubmit, municipios, form, resetForm }) => {
-    // Função para garantir que apenas números sejam inseridos no campo matrícula
     const handleNumberInput = (e) => {
-        const value = e.target.value.replace(/\D/g, ''); // Remove qualquer coisa que não seja número
+        const value = e.target.value.replace(/\D/g, '');
         form.setFieldsValue({ matricula: value });
     };
 
-    // Função para desabilitar datas futuras
     const disabledFutureDate = (current) => {
-        // Pode selecionar dias até hoje, incluindo hoje
         return current && current > moment().endOf('day');
     };
 

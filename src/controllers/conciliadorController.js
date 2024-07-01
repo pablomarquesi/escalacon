@@ -1,6 +1,5 @@
 import db from '../config/database.js';
 
-// Função para testar a conexão com o banco de dados MySQL
 export async function testDbConnection(req, res) {
     try {
         const [rows] = await db.query('SELECT 1 + 1 AS solution');
@@ -11,7 +10,6 @@ export async function testDbConnection(req, res) {
     }
 }
 
-// Função para buscar informações de conciliadores do banco de dados
 export async function fetchConciliadores(req, res) {
     try {
         const [conciliadores] = await db.query(`
@@ -30,7 +28,6 @@ export async function fetchConciliadores(req, res) {
     }
 }
 
-// Função para buscar informações de comarcas do banco de dados.
 export async function fetchComarcas(req, res) {
     try {
         const [comarcas] = await db.query('SELECT comarca_id, nome_comarca FROM comarca;');
@@ -41,8 +38,6 @@ export async function fetchComarcas(req, res) {
     }
 }
 
-
-// Função para verificar se um conciliador já existe com base no CPF
 export async function checkConciliadorExists(req, res) {
     const { cpf } = req.params;
     try {
@@ -58,9 +53,7 @@ export async function checkConciliadorExists(req, res) {
     }
 }
 
-// Função para adicionar um novo conciliador no banco de dados
 export async function addConciliador(req, res) {
-    console.log('Dados recebidos para adicionar:', req.body);
     const { matricula, nome_conciliador, cpf, telefone, email, comarca_id, data_credenciamento } = req.body;
     try {
         const result = await db.query(`
@@ -68,7 +61,6 @@ export async function addConciliador(req, res) {
             VALUES (?, ?, ?, ?, ?, ?, ?)
         `, [matricula, nome_conciliador, cpf, telefone, email, comarca_id, data_credenciamento]);
 
-        console.log('Resultado da query:', result);
         if (result[0].affectedRows > 0) {
             res.status(201).json({ message: "Conciliador adicionado com sucesso." });
         } else {
@@ -80,9 +72,7 @@ export async function addConciliador(req, res) {
     }
 }
 
-// Função para atualizar um conciliador no banco de dados
 export async function updateConciliador(req, res) {
-    console.log('Dados recebidos para atualizar:', req.body);
     const { id } = req.params;
     const { matricula, nome_conciliador, cpf, telefone, email, comarca_id, data_credenciamento } = req.body;
     try {
@@ -92,7 +82,6 @@ export async function updateConciliador(req, res) {
             WHERE conciliador_id = ?
         `, [matricula, nome_conciliador, cpf, telefone, email, comarca_id, data_credenciamento, id]);
 
-        console.log('Resultado da query:', result);
         if (result[0].affectedRows > 0) {
             res.status(200).json({ message: "Conciliador atualizado com sucesso." });
         } else {
@@ -104,7 +93,6 @@ export async function updateConciliador(req, res) {
     }
 }
 
-// Função para excluir conciliadores pelo ID
 export async function deleteConciliadores(req, res) {
     const { id } = req.params;
     try {

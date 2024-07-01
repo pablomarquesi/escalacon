@@ -5,7 +5,8 @@ import Logo from './components/Logo';
 import MenuList from './components/MenuList';
 import ToggleThemeButton from './components/ToggleThemeButton';
 import CadastroConciliador from './components/CadastroConciliador';
-import CadastroStatus from './components/CadastroStatus';  // Importe o novo componente
+import CadastroStatus from './components/CadastroStatus';
+import CadastroComarca from './components/CadastroComarca'; // Importe o novo componente
 
 const { Header, Sider, Content } = Layout;
 
@@ -27,8 +28,10 @@ function App() {
     switch (activeMenu) {
       case 'conciliador':
         return <CadastroConciliador />;
-      case 'status':  // Novo caso para o componente CadastroStatus
+      case 'status':
         return <CadastroStatus />;
+      case 'comarca':  // Novo caso para o componente CadastroComarca
+        return <CadastroComarca />;
       default:
         return <div>Selecione uma opção do menu</div>;
     }

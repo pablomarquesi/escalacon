@@ -16,10 +16,15 @@ const CadastroConciliador = () => {
 
     useEffect(() => {
         const initData = async () => {
-            const conciliadoresData = await fetchConciliadores();
-            const municipiosData = await fetchMunicipios();
-            setConciliadores(conciliadoresData);
-            setMunicipios(municipiosData);
+            try {
+                const conciliadoresData = await fetchConciliadores();
+                const municipiosData = await fetchMunicipios();
+                setConciliadores(conciliadoresData);
+                setMunicipios(municipiosData);
+            } catch (error) {
+                console.error('Erro ao buscar dados iniciais:', error);
+                message.error('Erro ao buscar dados iniciais. Tente novamente.');
+            }
         };
         initData();
     }, []);
@@ -123,10 +128,10 @@ const CadastroConciliador = () => {
                     columns={columns} 
                     rowKey="conciliador_id"
                     pagination={{
-                        pageSizeOptions: ['10', '20', '50', '100'], // Opções de quantidade de registros por página
-                        showSizeChanger: true, // Mostrar opção para mudar a quantidade de registros por página
-                        defaultPageSize: 10, // Quantidade padrão de registros por página
-                        showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} itens` // Mostrar total de itens
+                        pageSizeOptions: ['10', '20', '50', '100'],
+                        showSizeChanger: true,
+                        defaultPageSize: 10,
+                        showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} itens`
                     }}
                 />
             </div>

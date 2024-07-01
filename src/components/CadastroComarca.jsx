@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Input, Table, message, Form } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
-import { fetchStatus, saveStatus, deleteStatus } from '../services/statusService';
-import StatusModal from './StatusModal';
-import getTableColumnsStatus from './getTableColumnsStatus';
+import { fetchComarcas, saveComarca, deleteComarca } from '../services/comarcaService';
+import ComarcaModal from './ComarcaModal';
+import getTableColumnsComarca from './getTableColumnsComarca';
 
-const CadastroStatus = () => {
-    const [statusList, setStatusList] = useState([]);
+const CadastroComarca = () => {
+    const [comarcaList, setComarcaList] = useState([]);
     const [searchText, setSearchText] = useState('');
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [editingRecord, setEditingRecord] = useState(null);
@@ -15,12 +15,12 @@ const CadastroStatus = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const statusData = await fetchStatus();
-                const sortedStatus = statusData.sort((a, b) => a.nome_status.localeCompare(b.nome_status));
-                setStatusList(sortedStatus);
+                const comarcaData = await fetchComarcas();
+                const sortedComarcas = comarcaData.sort((a, b) => a.nome_comarca.localeCompare(b.nome_comarca));
+                setComarcaList(sortedComarcas);
             } catch (error) {
-                console.error('Erro ao buscar status:', error);
-                message.error('Erro ao buscar status. Tente novamente.');
+                console.error('Erro ao buscar comarcas:', error);
+                message.error('Erro ao buscar comarcas. Tente novamente.');
             }
         };
         fetchData();
@@ -43,34 +43,40 @@ const CadastroStatus = () => {
     };
 
     const handleSubmit = async (values) => {
+        console.log('Valores do formulário enviados:', values);
         try {
             if (editingRecord) {
-                values.status_id = editingRecord.status_id;
+                values.comarca_id = editingRecord.comarca_id;
             }
 
-            await saveStatus(values);
-            const statusData = await fetchStatus();
-            const sortedStatus = statusData.sort((a, b) => a.nome_status.localeCompare(b.nome_status));
-            setStatusList(sortedStatus);
-            setIsModalVisible(false); // Fechar o modal
-            form.resetFields(); // Resetar o formulário
-            message.success(editingRecord ? 'Status atualizado com sucesso' : 'Status adicionado com sucesso');
+            const response = await saveComarca(values);
+            console.log('Resposta do servidor:', response);
+            if (response.status === 200 || response.status === 201) {
+                const comarcaData = await fetchComarcas();
+                const sortedComarcas = comarcaData.sort((a, b) => a.nome_comarca.localeCompare(b.nome_comarca));
+                setComarcaList(sortedComarcas);
+                setIsModalVisible(false);
+                form.resetFields();
+                message.success(editingRecord ? 'Comarca atualizada com sucesso' : 'Comarca adicionada com sucesso');
+            } else {
+                throw new Error(response.statusText);
+            }
         } catch (error) {
-            console.error('Erro ao salvar status:', error);
-            message.error('Erro ao salvar status. Verifique os dados e tente novamente.');
+            console.error('Erro ao salvar comarca:', error);
+            message.error('Erro ao salvar comarca. Verifique os dados e tente novamente.');
         }
     };
 
     const handleDelete = async (id) => {
         try {
-            await deleteStatus(id);
-            const statusData = await fetchStatus();
-            const sortedStatus = statusData.sort((a, b) => a.nome_status.localeCompare(b.nome_status));
-            setStatusList(sortedStatus);
-            message.success('Status excluído com sucesso');
+            await deleteComarca(id);
+            const comarcaData = await fetchComarcas();
+            const sortedComarcas = comarcaData.sort((a, b) => a.nome_comarca.localeCompare(b.nome_comarca));
+            setComarcaList(sortedComarcas);
+            message.success('Comarca excluída com sucesso');
         } catch (error) {
-            console.error('Erro ao excluir status:', error);
-            message.error('Erro ao excluir status. Tente novamente.');
+            console.error('Erro ao excluir comarca:', error);
+            message.error('Erro ao excluir comarca. Tente novamente.');
         }
     };
 
@@ -79,20 +85,20 @@ const CadastroStatus = () => {
         setSearchText(value);
     };
 
-    const filteredStatus = searchText
-        ? statusList.filter(status =>
-            Object.keys(status).some(key =>
-                String(status[key]).toLowerCase().includes(searchText)
+    const filteredComarcas = searchText
+        ? comarcaList.filter(comarca =>
+            Object.keys(comarca).some(key =>
+                String(comarca[key]).toLowerCase().includes(searchText)
             )
         )
-        : statusList;
+        : comarcaList;
 
-    const columns = getTableColumnsStatus(showModal, handleDelete);
+    const columns = getTableColumnsComarca(showModal, handleDelete);
 
     return (
         <>
             <div className="header-container">
-                <h3>Relação de Status</h3>
+                <h3>Relação de Comarcas</h3>
                 <Input placeholder="Buscar..." onChange={handleSearch} style={{ marginRight: 8, width: '40%' }} />
                 <div className="button-group">
                     <Button 
@@ -106,9 +112,9 @@ const CadastroStatus = () => {
             </div>
             <div className="table-container">
                 <Table 
-                    dataSource={filteredStatus} 
+                    dataSource={filteredComarcas} 
                     columns={columns} 
-                    rowKey="status_id"
+                    rowKey="comarca_id"
                     pagination={{
                         pageSizeOptions: ['10', '20', '50', '100'],
                         showSizeChanger: true,
@@ -117,7 +123,7 @@ const CadastroStatus = () => {
                     }} 
                 />
             </div>
-            <StatusModal
+            <ComarcaModal
                 isVisible={isModalVisible}
                 onCancel={handleCancel}
                 onSubmit={handleSubmit}
@@ -127,4 +133,4 @@ const CadastroStatus = () => {
     );
 };
 
-export default CadastroStatus;
+export default CadastroComarca;

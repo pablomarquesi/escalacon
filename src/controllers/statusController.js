@@ -14,6 +14,12 @@ export async function fetchStatus(req, res) {
 // Função para adicionar um novo status
 export async function addStatus(req, res) {
     const { nome_status, descricao_status } = req.body;
+
+    // Validação básica
+    if (!nome_status || !descricao_status) {
+        return res.status(400).json({ error: 'Nome do status e descrição são obrigatórios.' });
+    }
+
     try {
         const result = await db.query('INSERT INTO status (nome_status, descricao_status) VALUES (?, ?)', [nome_status, descricao_status]);
         if (result.affectedRows > 0) {
@@ -31,6 +37,12 @@ export async function addStatus(req, res) {
 export async function updateStatus(req, res) {
     const { id } = req.params;
     const { nome_status, descricao_status } = req.body;
+
+    // Validação básica
+    if (!nome_status || !descricao_status) {
+        return res.status(400).json({ error: 'Nome do status e descrição são obrigatórios.' });
+    }
+
     try {
         const result = await db.query('UPDATE status SET nome_status = ?, descricao_status = ? WHERE status_id = ?', [nome_status, descricao_status, id]);
         if (result.affectedRows > 0) {
