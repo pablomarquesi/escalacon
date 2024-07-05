@@ -261,13 +261,13 @@ const CalendarioConciliadores = () => {
                 </Col>
                 <Col>
                     <Button type="primary" onClick={handleDistributeModalOpen} style={{ marginRight: 10 }}>
-                        Distribuir escala automaticamente
+                        Gerar escala
                     </Button>
-                    <Button onClick={handleClearModalOpen} style={{ marginRight: 10 }}>
+                    <Button type="primary" onClick={handleReportModalOpen} style={{ marginRight: 10 }}>
+                        Relatório
+                    </Button>
+                    <Button onClick={handleClearModalOpen}>
                         Limpar escala
-                    </Button>
-                    <Button type="primary" onClick={handleReportModalOpen}>
-                        Gerar Relatório
                     </Button>
                 </Col>
             </Row>
@@ -302,7 +302,7 @@ const CalendarioConciliadores = () => {
                 <h3 style={{ margin: '0 10px' }}>{`${meses[mes - 1]} ${ano}`}</h3>
                 <Button icon={<RightOutlined />} onClick={handleNextMonth} />
             </Row>
-            <div style={{ overflowX: 'auto' }}>
+            <div className="table-wrapper">
                 <table>
                     <thead>
                         <tr>
@@ -329,7 +329,7 @@ const CalendarioConciliadores = () => {
                                                 onClick={() => handleCellClick(conciliador.conciliador_id, d + 1)}
                                                 style={{
                                                     cursor: 'pointer',
-                                                    backgroundColor: cell === 'work' ? '#c5e1a5' : (isWeekend(d + 1, mes, ano) ? '#d3d3d3' : 'white'),
+                                                    backgroundColor: cell === 'work' ? '#d0f0c0' : (isWeekend(d + 1, mes, ano) ? '#e0e0e0' : 'white'),
                                                     position: 'relative'
                                                 }}
                                             ></td>
