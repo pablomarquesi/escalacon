@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetchConciliadores } from '../services/conciliadorService';
+import { fetchComarcas } from '../services/comarcaService'; // Importe a função
 import { Modal, Select, Row, Col, Pagination, Button, Checkbox, Tooltip, Form, Input, Radio } from 'antd';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import jsPDF from 'jspdf';
@@ -19,6 +20,7 @@ const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 
 
 const CalendarioConciliadores = () => {
     const [conciliadores, setConciliadores] = useState([]);
+    const [comarcas, setComarcas] = useState([]); // Estado para as comarcas
     const [mes, setMes] = useState(new Date().getMonth() + 1);
     const [ano, setAno] = useState(new Date().getFullYear());
     const [calendario, setCalendario] = useState({});
@@ -38,12 +40,16 @@ const CalendarioConciliadores = () => {
     const [selectedMeses, setSelectedMeses] = useState([]);
     const [isReportModalVisible, setIsReportModalVisible] = useState(false);
     const [reportMonth, setReportMonth] = useState(mes);
+    const [reportComarca, setReportComarca] = useState(null);
     const [reportFormat, setReportFormat] = useState('PDF');
 
     useEffect(() => {
         const fetchData = async () => {
             const conciliadoresData = await fetchConciliadores();
             setConciliadores(conciliadoresData);
+
+            const comarcasData = await fetchComarcas(); // Busque as comarcas
+            setComarcas(comarcasData);
         };
         fetchData();
     }, []);
@@ -87,8 +93,6 @@ const CalendarioConciliadores = () => {
                     const dia = d + 1;
                     if (!isWeekend(dia, selectedMes, ano)) {
                         newCalendario[conciliador.conciliador_id][`${selectedMes}-${dia}`] = Math.random() > 0.5 ? 'work' : 'default';
-                    } else {
-                        newCalendario[conciliador.conciliador_id][`${selectedMes}-${dia}`] = 'weekend';
                     }
                 });
             });
@@ -189,8 +193,12 @@ const CalendarioConciliadores = () => {
         setIsReportModalVisible(false);
     };
 
-    const handleMesChange = (checkedValues) => {
-        setSelectedMeses(checkedValues);
+    const handleMesChange = (value) => {
+        setReportMonth(value);
+    };
+
+    const handleComarcaChange = (value) => {
+        setReportComarca(value);
     };
 
     const getMonthOptions = () => {
@@ -200,6 +208,16 @@ const CalendarioConciliadores = () => {
             value: index + 1,
             disabled: index + 1 < currentMonth
         }));
+    };
+
+    const getComarcaOptions = () => {
+        return [
+            { label: 'Todas', value: null },
+            ...comarcas.map(c => ({
+                label: c.nome_comarca,
+                value: c.nome_comarca
+            }))
+        ];
     };
 
     const getFirstAndLastName = (fullName) => {
@@ -214,27 +232,65 @@ const CalendarioConciliadores = () => {
         const doc = new jsPDF();
         doc.setFontSize(18);
         doc.text(`Escala de ${meses[reportMonth - 1]} ${ano}`, 14, 22);
-        
-        const tableRows = [];
 
-        // Iterando sobre os dias do mês para criar linhas para o relatório
-        for (let dia = 1; dia <= getDaysInMonth(reportMonth, ano); dia++) {
-            const formattedDate = getFormattedDate(dia, reportMonth, ano);
-            const conciliadoresDoDia = conciliadores
-                .filter(conciliador => calendario[conciliador.conciliador_id]?.[`${reportMonth}-${dia}`] === 'work')
-                .map(conciliador => getFirstAndLastName(conciliador.nome_conciliador))
-                .join(', ');
+        const groupedData = {};
 
-            tableRows.push([formattedDate, conciliadoresDoDia]);
-        }
+        conciliadores.forEach(conciliador => {
+            const { nome_comarca, nome_juizado, nome_sala_virtual, nome_conciliador, conciliador_id } = conciliador;
+            
+            if (reportComarca && nome_comarca !== reportComarca) return; // Filtrar por comarca selecionada
 
-        doc.autoTable({
-            head: [['Data', 'Conciliadores']],
-            body: tableRows,
-            startY: 30,
-            styles: { fontSize: 10, cellPadding: 3, minCellHeight: 10 },
-            headStyles: { fillColor: [22, 160, 133] },
-            columnStyles: { 0: { cellWidth: 'auto' }, 1: { cellWidth: 'auto' } }
+            if (!groupedData[nome_comarca]) groupedData[nome_comarca] = {};
+            if (!groupedData[nome_comarca][nome_juizado]) groupedData[nome_comarca][nome_juizado] = {};
+            
+            for (let dia = 1; dia <= getDaysInMonth(reportMonth, ano); dia++) {
+                const cell = calendario[conciliador_id]?.[`${reportMonth}-${dia}`];
+                if (cell === 'work') {
+                    const formattedDate = getFormattedDate(dia, reportMonth, ano);
+                    if (!groupedData[nome_comarca][nome_juizado][formattedDate]) {
+                        groupedData[nome_comarca][nome_juizado][formattedDate] = [];
+                    }
+                    groupedData[nome_comarca][nome_juizado][formattedDate].push({
+                        conciliador: getFirstAndLastName(nome_conciliador),
+                        salaVirtual: nome_sala_virtual
+                    });
+                }
+            }
+        });
+
+        let startY = 30;
+        Object.keys(groupedData).forEach(comarca => {
+            doc.setFontSize(14);
+            doc.text(comarca, 14, startY);
+            startY += 2;
+            doc.line(14, startY, 196, startY); // linha horizontal abaixo do nome da comarca
+            startY += 8;
+
+            Object.keys(groupedData[comarca]).forEach(juizado => {
+                doc.setFillColor(240, 240, 240); // cinza bem claro
+                doc.rect(14, startY - 4, 182, 10, 'F'); // fundo cinza claro para o juizado
+                doc.setFontSize(12);
+                doc.text(juizado, 14, startY);
+                startY += 10;
+
+                Object.keys(groupedData[comarca][juizado]).forEach(date => {
+                    doc.setFontSize(12);
+                    doc.text(date, 14, startY);
+                    startY += 8;
+
+                    doc.autoTable({
+                        startY,
+                        head: [['Conciliador', 'Sala Virtual']],
+                        body: groupedData[comarca][juizado][date].map(({ conciliador, salaVirtual }) => [conciliador, salaVirtual]),
+                        theme: 'grid',
+                        styles: { fontSize: 10, cellPadding: 3, minCellHeight: 10, halign: 'left' }, // alinhado à esquerda
+                        headStyles: { fillColor: [200, 200, 200] }, // fundo para o cabeçalho
+                        columnStyles: { 0: { cellWidth: 'auto' }, 1: { cellWidth: 'auto' } },
+                    });
+
+                    startY = doc.autoTable.previous.finalY + 5;
+                });
+            });
         });
 
         doc.save(`escala_${meses[reportMonth - 1]}_${ano}.pdf`);
@@ -276,10 +332,18 @@ const CalendarioConciliadores = () => {
                     <span>Filtrar:</span>
                 </Col>
                 <Col>
-                    <Select placeholder="Comarca" value={comarca} onChange={(value) => setComarca(value)} style={{ width: 120 }}>
-                        {/* Adicione as opções de comarca aqui */}
-                        <Option value={1}>Comarca 1</Option>
-                        <Option value={2}>Comarca 2</Option>
+                    <Select
+                        placeholder="Comarca"
+                        value={comarca}
+                        onChange={(value) => setComarca(value)}
+                        style={{ width: 200 }} // Aumentar largura do campo
+                    >
+                        <Option value={null}>Todas</Option>
+                        {comarcas.map((comarca) => (
+                            <Option key={comarca.comarca_id} value={comarca.comarca_id}>
+                                {comarca.nome_comarca}
+                            </Option>
+                        ))}
                     </Select>
                 </Col>
                 <Col>
@@ -416,7 +480,7 @@ const CalendarioConciliadores = () => {
                 onOk={handleDistribute}
                 onCancel={() => setIsDistributeModalVisible(false)}
             >
-                <Checkbox.Group options={getMonthOptions()} onChange={handleMesChange} style={{ display: 'flex', flexDirection: 'column' }} />
+                <Checkbox.Group options={getMonthOptions()} onChange={(values) => setSelectedMeses(values)} style={{ display: 'flex', flexDirection: 'column' }} />
             </Modal>
             <Modal
                 title="Selecionar Meses para Limpar"
@@ -424,7 +488,7 @@ const CalendarioConciliadores = () => {
                 onOk={handleClear}
                 onCancel={() => setIsClearModalVisible(false)}
             >
-                <Checkbox.Group options={getMonthOptions()} onChange={handleMesChange} style={{ display: 'flex', flexDirection: 'column' }} />
+                <Checkbox.Group options={getMonthOptions()} onChange={(values) => setSelectedMeses(values)} style={{ display: 'flex', flexDirection: 'column' }} />
             </Modal>
             <Modal
                 title="Gerar Relatório"
@@ -437,9 +501,16 @@ const CalendarioConciliadores = () => {
             >
                 <Form layout="vertical">
                     <Form.Item label="Selecionar Mês">
-                        <Select value={reportMonth} onChange={(value) => setReportMonth(value)}>
+                        <Select value={reportMonth} onChange={handleMesChange}>
                             {meses.map((mes, index) => (
                                 <Option key={index} value={index + 1}>{mes}</Option>
+                            ))}
+                        </Select>
+                    </Form.Item>
+                    <Form.Item label="Selecionar Comarca">
+                        <Select value={reportComarca} onChange={handleComarcaChange} style={{ width: '100%' }}>
+                            {getComarcaOptions().map(option => (
+                                <Option key={option.value} value={option.value}>{option.label}</Option>
                             ))}
                         </Select>
                     </Form.Item>
