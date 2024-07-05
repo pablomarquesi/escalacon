@@ -21,7 +21,7 @@ const StatusModal = ({ isVisible, onCancel, onSubmit, form }) => {
                         form.resetFields();
                         onCancel(); // Fechar o modal
                     } catch (error) {
-                        message.error('Erro ao salvar status. Tente novamente.');
+                        message.error(`Erro ao salvar status: ${error.message}. Tente novamente.`);
                     }
                 }}
             >

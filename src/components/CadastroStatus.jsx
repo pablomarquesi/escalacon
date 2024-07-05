@@ -1,19 +1,22 @@
-import React, { useEffect, useState } from 'react';
-import { Button, Input, Table, message, Form } from 'antd';
+import React, { useEffect, useState, useCallback } from 'react';
+import { Button, Input, Table, message, Form, Spin } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { fetchStatus, saveStatus, deleteStatus } from '../services/statusService';
 import StatusModal from './StatusModal';
 import getTableColumnsStatus from './getTableColumnsStatus';
+import debounce from 'lodash/debounce';
 
 const CadastroStatus = () => {
     const [statusList, setStatusList] = useState([]);
     const [searchText, setSearchText] = useState('');
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [editingRecord, setEditingRecord] = useState(null);
+    const [loading, setLoading] = useState(false);
     const [form] = Form.useForm();
 
     useEffect(() => {
         const fetchData = async () => {
+            setLoading(true);
             try {
                 const statusData = await fetchStatus();
                 const sortedStatus = statusData.sort((a, b) => a.nome_status.localeCompare(b.nome_status));
@@ -21,6 +24,8 @@ const CadastroStatus = () => {
             } catch (error) {
                 console.error('Erro ao buscar status:', error);
                 message.error('Erro ao buscar status. Tente novamente.');
+            } finally {
+                setLoading(false);
             }
         };
         fetchData();
@@ -34,6 +39,7 @@ const CadastroStatus = () => {
             setEditingRecord(null);
             form.resetFields();
         }
+        message.destroy();
         setIsModalVisible(true);
     };
 
@@ -43,41 +49,50 @@ const CadastroStatus = () => {
     };
 
     const handleSubmit = async (values) => {
+        setLoading(true);
         try {
-            if (editingRecord) {
-                values.status_id = editingRecord.status_id;
-            }
+            const statusData = {
+                nome_status: values.nome_status,
+                descricao_status: values.descricao_status,
+                ...(editingRecord ? { status_id: editingRecord.status_id } : {})
+            };
 
-            await saveStatus(values);
-            const statusData = await fetchStatus();
-            const sortedStatus = statusData.sort((a, b) => a.nome_status.localeCompare(b.nome_status));
-            setStatusList(sortedStatus);
-            setIsModalVisible(false); // Fechar o modal
-            form.resetFields(); // Resetar o formulário
+            console.log('Enviando dados:', statusData); // Log dos dados enviados
+
+            await saveStatus(statusData);
+            await fetchData();
+            setIsModalVisible(false);
+            form.resetFields();
             message.success(editingRecord ? 'Status atualizado com sucesso' : 'Status adicionado com sucesso');
         } catch (error) {
             console.error('Erro ao salvar status:', error);
             message.error('Erro ao salvar status. Verifique os dados e tente novamente.');
+        } finally {
+            setLoading(false);
         }
     };
 
     const handleDelete = async (id) => {
+        setLoading(true);
         try {
             await deleteStatus(id);
-            const statusData = await fetchStatus();
-            const sortedStatus = statusData.sort((a, b) => a.nome_status.localeCompare(b.nome_status));
-            setStatusList(sortedStatus);
+            await fetchData();
             message.success('Status excluído com sucesso');
         } catch (error) {
             console.error('Erro ao excluir status:', error);
             message.error('Erro ao excluir status. Tente novamente.');
+        } finally {
+            setLoading(false);
         }
     };
 
-    const handleSearch = (e) => {
-        const value = e.target.value.toLowerCase();
-        setSearchText(value);
-    };
+    const handleSearch = useCallback(
+        debounce((e) => {
+            const value = e.target.value.toLowerCase();
+            setSearchText(value);
+        }, 300),
+        []
+    );
 
     const filteredStatus = searchText
         ? statusList.filter(status =>
@@ -105,17 +120,19 @@ const CadastroStatus = () => {
                 </div>
             </div>
             <div className="table-container">
-                <Table 
-                    dataSource={filteredStatus} 
-                    columns={columns} 
-                    rowKey="status_id"
-                    pagination={{
-                        pageSizeOptions: ['10', '20', '50', '100'],
-                        showSizeChanger: true,
-                        defaultPageSize: 10,
-                        showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} itens`
-                    }} 
-                />
+                <Spin spinning={loading}>
+                    <Table 
+                        dataSource={filteredStatus} 
+                        columns={columns} 
+                        rowKey="status_id"
+                        pagination={{
+                            pageSizeOptions: ['10', '20', '50', '100'],
+                            showSizeChanger: true,
+                            defaultPageSize: 10,
+                            showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} itens`
+                        }} 
+                    />
+                </Spin>
             </div>
             <StatusModal
                 isVisible={isModalVisible}

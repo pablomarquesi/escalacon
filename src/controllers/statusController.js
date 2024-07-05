@@ -15,6 +15,9 @@ export async function fetchStatus(req, res) {
 export async function addStatus(req, res) {
     const { nome_status, descricao_status } = req.body;
 
+    // Log dos dados recebidos
+    console.log('Dados recebidos no backend:', req.body);
+
     // Validação básica
     if (!nome_status || !descricao_status) {
         return res.status(400).json({ error: 'Nome do status e descrição são obrigatórios.' });

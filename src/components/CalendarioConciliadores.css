@@ -1,0 +1,65 @@
+.calendario-container {
+    overflow-x: hidden;
+    margin: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+th.conciliador-column, td.conciliador-column {
+    width: 200px; /* Ajuste a largura conforme necessário */
+}
+
+th {
+    background-color: #f2f2f2;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+td:first-child {
+    background-color: #f9f9f9;
+    position: sticky;
+    left: 0;
+    z-index: 1;
+}
+
+.default {
+    background-color: white;
+}
+
+.work {
+    background-color: #c5e1a5; /* Verde mais discreto */
+}
+
+.weekend {
+    background-color: #d3d3d3;
+}
+
+.dia-semana {
+    font-size: 12px;
+    color: #555;
+    font-weight: normal;
+}
+
+h2 {
+    margin: 0;
+}
+
+h3 {
+    margin: 0;
+    padding: 0 10px;
+}
+
+.modal-content p {
+    margin-bottom: 10px;
+}
