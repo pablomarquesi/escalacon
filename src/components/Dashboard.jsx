@@ -1,5 +1,3 @@
-// src/components/Dashboard.jsx
-
 import React, { useEffect, useState } from 'react';
 import { Pie, Column } from '@ant-design/charts';
 import axios from 'axios';
@@ -36,14 +34,22 @@ const Dashboard = () => {
     try {
       const response = await axios.get('http://localhost:3000/api/disponibilidades');
       const data = response.data.reduce((acc, disponibilidade) => {
-        const diaSemana = disponibilidade.dia_da_semana;
-        if (!acc[diaSemana]) {
-          acc[diaSemana] = 0;
-        }
-        acc[diaSemana]++;
+        const dias = disponibilidade.dias_da_semana.split(',');
+        dias.forEach(dia => {
+          if (!acc[dia]) {
+            acc[dia] = 0;
+          }
+          acc[dia]++;
+        });
         return acc;
       }, {});
-      const chartData = Object.keys(data).map(key => ({ day: key, value: data[key] }));
+
+      const orderedDays = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
+      const chartData = orderedDays.map(day => ({
+        day,
+        value: data[day] || 0
+      }));
+      
       setDisponibilidadeData(chartData);
     } catch (error) {
       console.error('Erro ao buscar dados de disponibilidade:', error);
@@ -83,8 +89,13 @@ const Dashboard = () => {
       style: { fill: '#000000', opacity: 0.8 },
       formatter: (datum) => datum.value,
     },
-    xAxis: { label: { autoHide: true, autoRotate: false } },
-    meta: { day: { alias: 'Dia da Semana' }, value: { alias: 'Disponibilidade' } },
+    xAxis: { 
+      label: { autoHide: true, autoRotate: false },
+    },
+    meta: { 
+      day: { alias: 'Dia da Semana' }, 
+      value: { alias: 'Disponibilidade' } 
+    },
   };
 
   return (
