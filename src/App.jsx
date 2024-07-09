@@ -4,21 +4,17 @@ import { MenuUnfoldOutlined, MenuFoldOutlined } from '@ant-design/icons';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Logo from './components/Logo';
 import MenuList from './components/MenuList';
-import ToggleThemeButton from './components/ToggleThemeButton';
 import CadastroConciliador from './components/CadastroConciliador';
 import CadastroStatus from './components/CadastroStatus';
 import CadastroComarca from './components/CadastroComarca';
 import CalendarioConciliadores from './components/CalendarioConciliadores';
+import Disponibilidade from './components/Disponibilidade';
+import Dashboard from './components/Dashboard'; // Importando o dashboard
 
 const { Header, Sider, Content } = Layout;
 
 function App() {
-  const [darkTheme, setDarkTheme] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
-
-  const toggleTheme = () => {
-    setDarkTheme(!darkTheme);
-  };
 
   return (
     <Router>
@@ -27,12 +23,11 @@ function App() {
           collapsed={collapsed}
           collapsible
           trigger={null}
-          theme={darkTheme ? 'dark' : 'light'}
+          theme='dark'
           className='sidebar'>
           
           <Logo collapsed={collapsed} />
-          <MenuList darkTheme={darkTheme} />
-          <ToggleThemeButton darkTheme={darkTheme} toggleTheme={toggleTheme} />
+          <MenuList />
         </Sider>
         <Layout className="site-layout">
           <Header style={{ padding: 0 }} className='header'>
@@ -44,9 +39,10 @@ function App() {
           </Header>
           <Content style={{ margin: '24px 16px', padding: 24, minHeight: 280 }}>
             <Routes>
+              <Route path="/" element={<Dashboard />} /> {/* Definindo o dashboard como a página inicial */}
               <Route path="/escala" element={<CalendarioConciliadores />} />
               <Route path="/cadastro/conciliador" element={<CadastroConciliador />} />
-              <Route path="/cadastro/disponibilidade" element={<div>Disponibilidade</div>} />
+              <Route path="/cadastro/disponibilidade" element={<Disponibilidade />} />  {/* Adicionando a rota para Disponibilidade */}
               <Route path="/cadastro/status" element={<CadastroStatus />} />
               <Route path="/locais/comarca" element={<CadastroComarca />} />
               <Route path="/locais/juizado" element={<div>Juizado</div>} />

@@ -38,21 +38,6 @@ export async function fetchComarcas(req, res) {
     }
 }
 
-export async function checkConciliadorExists(req, res) {
-    const { cpf } = req.params;
-    try {
-        const [result] = await db.query('SELECT cpf FROM conciliador WHERE cpf = ?', [cpf]);
-        if (result.length > 0) {
-            res.status(200).json({ exists: true });
-        } else {
-            res.status(200).json({ exists: false });
-        }
-    } catch (error) {
-        console.error('Erro ao verificar existência de conciliador:', error);
-        res.status(500).json({ error: 'Erro no servidor ao verificar existência de conciliador' });
-    }
-}
-
 export async function addConciliador(req, res) {
     const { matricula, nome_conciliador, cpf, telefone, email, comarca_id, data_credenciamento } = req.body;
     try {

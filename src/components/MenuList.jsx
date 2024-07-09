@@ -1,6 +1,7 @@
 import React from 'react';
 import { Menu } from 'antd';
 import {
+    AppstoreOutlined,
     CalendarOutlined,
     UserOutlined,
     HourglassOutlined,
@@ -13,11 +14,14 @@ import {
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
-const MenuList = ({ darkTheme }) => {
+const MenuList = () => {
     const navigate = useNavigate();
 
     const handleMenuClick = (e) => {
         switch (e.key) {
+            case 'dashboard':
+                navigate('/');
+                break;
             case 'home':
                 navigate('/escala');
                 break;
@@ -49,11 +53,14 @@ const MenuList = ({ darkTheme }) => {
 
     return (
         <Menu
-            theme={darkTheme ? 'dark' : 'light'}
+            theme="dark"
             mode='inline'
             className='menu-bar'
             onClick={handleMenuClick}
         >
+            <Menu.Item key="dashboard" icon={<AppstoreOutlined />}>
+                Dashboard
+            </Menu.Item>
             <Menu.Item key="home" icon={<CalendarOutlined />}>
                 Escala
             </Menu.Item>
