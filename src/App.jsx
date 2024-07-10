@@ -7,7 +7,7 @@ import MenuList from './components/MenuList';
 import CadastroConciliador from './components/CadastroConciliador';
 import CadastroStatus from './components/CadastroStatus';
 import CadastroComarca from './components/CadastroComarca';
-import CalendarioConciliadores from './components/CalendarioConciliadores';
+import CalendarioConciliadores from './components/EscalaConciliadores';
 import Disponibilidade from './components/Disponibilidade';
 import Dashboard from './components/Dashboard';
 import Juizado from './components/Juizado';

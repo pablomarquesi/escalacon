@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { fetchConciliadores } from '../services/conciliadorService';
-import { fetchComarcas } from '../services/comarcaService'; // Importe a função
+import { fetchComarcas } from '../services/comarcaService';
+import { fetchDisponibilidades } from '../services/disponibilidadeService'; // Importe a função
 import { Modal, Select, Row, Col, Pagination, Button, Checkbox, Tooltip, Form, Input, Radio } from 'antd';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import './CalendarioConciliadores.css';
+import './EscalaConciliadores.css';
 
 const { Option } = Select;
 
@@ -46,9 +47,13 @@ const CalendarioConciliadores = () => {
     useEffect(() => {
         const fetchData = async () => {
             const conciliadoresData = await fetchConciliadores();
-            setConciliadores(conciliadoresData);
+            const disponibilidadesData = await fetchDisponibilidades();
+            const conciliadoresDisponiveis = conciliadoresData.filter(conciliador => 
+                disponibilidadesData.some(disponibilidade => disponibilidade.conciliador_id === conciliador.conciliador_id)
+            );
+            setConciliadores(conciliadoresDisponiveis);
 
-            const comarcasData = await fetchComarcas(); // Busque as comarcas
+            const comarcasData = await fetchComarcas();
             setComarcas(comarcasData);
         };
         fetchData();
@@ -451,8 +456,11 @@ const CalendarioConciliadores = () => {
                         </Form.Item>
                         <Form.Item name="comarca" label="Comarca" rules={[{ required: true, message: 'Por favor, selecione uma comarca!' }]}>
                             <Select placeholder="Selecione a comarca">
-                                <Option value="1">Comarca 1</Option>
-                                <Option value="2">Comarca 2</Option>
+                                {comarcas.map((comarca) => (
+                                    <Option key={comarca.comarca_id} value={comarca.comarca_id}>
+                                        {comarca.nome_comarca}
+                                    </Option>
+                                ))}
                             </Select>
                         </Form.Item>
                         <Form.Item name="juizado" label="Juizado" rules={[{ required: true, message: 'Por favor, selecione um juizado!' }]}>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Column } from '@ant-design/charts';
+import { Pie, Column } from '@ant-design/charts';
 import axios from 'axios';
 import { Card, Row, Col } from 'antd';
 
@@ -10,6 +10,7 @@ const Dashboard = () => {
   const [totalSalasVirtuais, setTotalSalasVirtuais] = useState(0);
   const [totalJuizados, setTotalJuizados] = useState(0);
   const [totalConciliadoresDisponiveis, setTotalConciliadoresDisponiveis] = useState(0);
+  const [filter, setFilter] = useState(null); // Estado para o filtro
 
   useEffect(() => {
     fetchSalasPorJuizadoData();
@@ -18,11 +19,11 @@ const Dashboard = () => {
     fetchTotalSalasVirtuais();
     fetchTotalJuizados();
     fetchTotalConciliadoresDisponiveis();
-  }, []);
+  }, [filter]);
 
   const fetchSalasPorJuizadoData = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/salasvirtuais');
+      const response = await axios.get('http://localhost:3000/api/salasvirtuais', { params: { filter } });
       const data = response.data.reduce((acc, sala) => {
         const juizado = sala.nome_juizado;
         if (!acc[juizado]) {
@@ -40,7 +41,7 @@ const Dashboard = () => {
 
   const fetchDisponibilidadeData = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/disponibilidades');
+      const response = await axios.get('http://localhost:3000/api/disponibilidades', { params: { filter } });
       const data = response.data.reduce((acc, disponibilidade) => {
         const dias = disponibilidade.dias_da_semana.split(',');
         dias.forEach(dia => {
@@ -66,7 +67,7 @@ const Dashboard = () => {
 
   const fetchTotalConciliadores = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/conciliadores');
+      const response = await axios.get('http://localhost:3000/api/conciliadores', { params: { filter } });
       setTotalConciliadores(response.data.length);
     } catch (error) {
       console.error('Erro ao buscar total de conciliadores:', error);
@@ -75,7 +76,7 @@ const Dashboard = () => {
 
   const fetchTotalSalasVirtuais = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/salasvirtuais');
+      const response = await axios.get('http://localhost:3000/api/salasvirtuais', { params: { filter } });
       setTotalSalasVirtuais(response.data.length);
     } catch (error) {
       console.error('Erro ao buscar total de salas virtuais:', error);
@@ -84,7 +85,7 @@ const Dashboard = () => {
 
   const fetchTotalJuizados = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/juizados');
+      const response = await axios.get('http://localhost:3000/api/juizados', { params: { filter } });
       setTotalJuizados(response.data.length);
     } catch (error) {
       console.error('Erro ao buscar total de juizados:', error);
@@ -93,7 +94,7 @@ const Dashboard = () => {
 
   const fetchTotalConciliadoresDisponiveis = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/disponibilidades');
+      const response = await axios.get('http://localhost:3000/api/disponibilidades', { params: { filter } });
       const conciliadoresIds = new Set(response.data.map(d => d.conciliador_id));
       setTotalConciliadoresDisponiveis(conciliadoresIds.size);
     } catch (error) {
@@ -101,39 +102,46 @@ const Dashboard = () => {
     }
   };
 
+  const handleCardClick = (type) => {
+    setFilter(type);
+  };
+
   const salasPorJuizadoConfig = {
+    appendPadding: 10,
     data: salasPorJuizadoData,
-    xField: 'juizado',
-    yField: 'value',
-    label: { 
-      position: 'middle', 
-      style: { fill: '#000000', opacity: 0.8 },
-      formatter: (datum) => datum.value,
+    angleField: 'value',
+    colorField: 'juizado',
+    radius: 1,
+    innerRadius: 0.6,
+    label: {
+      type: 'inner',
+      offset: '-50%',
+      content: '{value}',
+      style: { fontSize: 14, textAlign: 'center' },
     },
-    xAxis: { 
-      label: { autoHide: true, autoRotate: false },
+    tooltip: {
+      fields: ['juizado', 'value'],
+      formatter: datum => ({ name: datum.juizado, value: datum.value }),
     },
-    meta: { 
-      juizado: { alias: 'Juizado' }, 
-      value: { alias: 'Quantidade de Salas' } 
-    },
+    interactions: [{ type: 'element-selected' }, { type: 'element-active' }],
+    statistic: { title: false, content: { style: { whiteSpace: 'pre-wrap', overflow: 'hidden', textOverflow: 'ellipsis' } } },
   };
 
   const disponibilidadeConfig = {
     data: disponibilidadeData,
     xField: 'day',
     yField: 'value',
-    label: { 
-      position: 'middle', 
+    label: {
+      position: 'middle',
       style: { fill: '#000000', opacity: 0.8 },
-      formatter: (datum) => datum.value,
+      formatter: datum => datum.value,
     },
-    xAxis: { 
+    xAxis: {
       label: { autoHide: true, autoRotate: false },
     },
-    meta: { 
-      day: { alias: 'Dia da Semana' }, 
-      value: { alias: 'Disponibilidade' } 
+    meta: {
+      day: { alias: 'Dia da Semana' },
+      value: { alias: 'Disponibilidade' },
     },
   };
 
@@ -144,29 +152,29 @@ const Dashboard = () => {
         <Col span={12}>
           <Row gutter={16}>
             <Col span={12}>
-              <Card title="Quantidade de Juizados" bordered={false} className="small-card">
+              <Card title="Quantidade de Juizados" bordered={false} className="small-card" onClick={() => handleCardClick('juizados')}>
                 <h2>{totalJuizados}</h2>
               </Card>
             </Col>
             <Col span={12}>
-              <Card title="Quantidade de Salas Virtuais" bordered={false} className="small-card">
+              <Card title="Quantidade de Salas Virtuais" bordered={false} className="small-card" onClick={() => handleCardClick('salasvirtuais')}>
                 <h2>{totalSalasVirtuais}</h2>
               </Card>
             </Col>
           </Row>
           <Card title="Quantidade de Salas por Juizado" bordered={false} className="large-card">
-            <Column {...salasPorJuizadoConfig} />
+            <Pie {...salasPorJuizadoConfig} />
           </Card>
         </Col>
         <Col span={12}>
           <Row gutter={16}>
             <Col span={12}>
-              <Card title="Quantidade de Conciliadores" bordered={false} className="small-card">
+              <Card title="Quantidade de Conciliadores" bordered={false} className="small-card" onClick={() => handleCardClick('conciliadores')}>
                 <h2>{totalConciliadores}</h2>
               </Card>
             </Col>
             <Col span={12}>
-              <Card title="Quantidade de Conciliadores Disponíveis" bordered={false} className="small-card">
+              <Card title="Quantidade de Conciliadores Disponíveis" bordered={false} className="small-card" onClick={() => handleCardClick('disponibilidades')}>
                 <h2>{totalConciliadoresDisponiveis}</h2>
               </Card>
             </Col>

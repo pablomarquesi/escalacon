@@ -23,6 +23,7 @@ h1 {
   margin-bottom: 24px;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  cursor: pointer; /* Adicionar cursor de ponteiro para indicar interatividade */
 }
 
 .small-card {
@@ -30,6 +31,7 @@ h1 {
   display: flex;
   align-items: center;
   justify-content: center;
+  text-align: center; /* Centralizar o texto */
 }
 
 .sidebar {
