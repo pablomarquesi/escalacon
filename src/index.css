@@ -27,6 +27,9 @@ h1 {
 
 .small-card {
   height: 120px; /* Ajuste a altura conforme necessário */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .sidebar {
@@ -102,4 +105,15 @@ h1 {
 
 .ant-picker {
   width: 100%; /* Ajuste o tamanho do seletor conforme necessário */
+}
+
+.large-card {
+  height: 400px;
+}
+
+.ant-card-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
 }

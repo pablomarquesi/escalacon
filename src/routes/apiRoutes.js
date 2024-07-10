@@ -2,6 +2,8 @@ import { addConciliador, deleteConciliadores, fetchConciliadores, testDbConnecti
 import { fetchStatus, addStatus, updateStatus, deleteStatus } from '../controllers/statusController.js';
 import { addComarca, deleteComarca, fetchComarcas, updateComarca } from '../controllers/comarcaController.js';
 import { addDisponibilidade, deleteDisponibilidade, fetchDisponibilidades } from '../controllers/disponibilidadeController.js';
+import { fetchJuizados, addJuizado, updateJuizado, deleteJuizado } from '../controllers/juizadoController.js';
+import { fetchSalasVirtuais, addSalaVirtual, updateSalaVirtual, deleteSalaVirtual } from '../controllers/salaVirtualController.js';
 
 export function registerApiRoutes(app) {
     app.get('/testdb', testDbConnection);
@@ -29,4 +31,15 @@ export function registerApiRoutes(app) {
     app.post('/api/disponibilidades', addDisponibilidade);
     app.delete('/api/disponibilidades/:conciliador_id/:mes/:dia_da_semana?', deleteDisponibilidade);
 
+    // Rotas para juizados
+    app.get('/api/juizados', fetchJuizados);
+    app.post('/api/juizados', addJuizado);
+    app.put('/api/juizados/:id', updateJuizado);
+    app.delete('/api/juizados/:id', deleteJuizado);
+
+    // Rotas para salas virtuais
+    app.get('/api/salasvirtuais', fetchSalasVirtuais);
+    app.post('/api/salasvirtuais', addSalaVirtual);
+    app.put('/api/salasvirtuais/:id', updateSalaVirtual);
+    app.delete('/api/salasvirtuais/:id', deleteSalaVirtual);
 }

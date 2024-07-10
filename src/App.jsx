@@ -9,7 +9,9 @@ import CadastroStatus from './components/CadastroStatus';
 import CadastroComarca from './components/CadastroComarca';
 import CalendarioConciliadores from './components/CalendarioConciliadores';
 import Disponibilidade from './components/Disponibilidade';
-import Dashboard from './components/Dashboard'; // Importando o dashboard
+import Dashboard from './components/Dashboard';
+import Juizado from './components/Juizado';
+import SalaVirtual from './components/SalaVirtual'; // Importando o componente de Sala Virtual
 
 const { Header, Sider, Content } = Layout;
 
@@ -45,8 +47,8 @@ function App() {
               <Route path="/cadastro/disponibilidade" element={<Disponibilidade />} />  {/* Adicionando a rota para Disponibilidade */}
               <Route path="/cadastro/status" element={<CadastroStatus />} />
               <Route path="/locais/comarca" element={<CadastroComarca />} />
-              <Route path="/locais/juizado" element={<div>Juizado</div>} />
-              <Route path="/locais/salavirtual" element={<div>Sala Virtual</div>} />
+              <Route path="/locais/juizado" element={<Juizado />} /> {/* Atualizando a rota para Juizado */}
+              <Route path="/locais/salavirtual" element={<SalaVirtual />} /> {/* Atualizando a rota para Sala Virtual */}
               <Route path="/configuracoes/usuarios" element={<div>Usuários</div>} />
             </Routes>
           </Content>
