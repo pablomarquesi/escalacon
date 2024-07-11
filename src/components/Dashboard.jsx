@@ -111,13 +111,13 @@ const Dashboard = () => {
     data: salasPorJuizadoData,
     angleField: 'value',
     colorField: 'juizado',
-    radius: 1,
+    radius: 0.8,
     innerRadius: 0.6,
     label: {
       type: 'inner',
-      offset: '-50%',
+      offset: '-30%',
       content: '{value}',
-      style: { fontSize: 14, textAlign: 'center' },
+      style: { fontSize: 12, textAlign: 'center' },
     },
     tooltip: {
       fields: ['juizado', 'value'],
@@ -143,42 +143,41 @@ const Dashboard = () => {
       day: { alias: 'Dia da Semana' },
       value: { alias: 'Disponibilidade' },
     },
+    height: 300,
   };
 
   return (
     <div className="dashboard-container">
       <h1 className="dashboard-title">Dashboard</h1>
-      <Row gutter={16}>
-        <Col span={12}>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Card title="Quantidade de Juizados" bordered={false} className="small-card" onClick={() => handleCardClick('juizados')}>
-                <h2>{totalJuizados}</h2>
-              </Card>
-            </Col>
-            <Col span={12}>
-              <Card title="Quantidade de Salas Virtuais" bordered={false} className="small-card" onClick={() => handleCardClick('salasvirtuais')}>
-                <h2>{totalSalasVirtuais}</h2>
-              </Card>
-            </Col>
-          </Row>
+      <Row gutter={[16, 16]}>
+        <Col xs={24} sm={12} lg={6}>
+          <Card title="Quantidade de Juizados" bordered={false} className="small-card" onClick={() => handleCardClick('juizados')}>
+            <h2>{totalJuizados}</h2>
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card title="Quantidade de Salas Virtuais" bordered={false} className="small-card" onClick={() => handleCardClick('salasvirtuais')}>
+            <h2>{totalSalasVirtuais}</h2>
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card title="Quantidade de Conciliadores" bordered={false} className="small-card" onClick={() => handleCardClick('conciliadores')}>
+            <h2>{totalConciliadores}</h2>
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card title="Conciliadores Disponíveis" bordered={false} className="small-card" onClick={() => handleCardClick('disponibilidades')}>
+            <h2>{totalConciliadoresDisponiveis}</h2>
+          </Card>
+        </Col>
+      </Row>
+      <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
+        <Col xs={24} lg={12}>
           <Card title="Quantidade de Salas por Juizado" bordered={false} className="large-card">
             <Pie {...salasPorJuizadoConfig} />
           </Card>
         </Col>
-        <Col span={12}>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Card title="Quantidade de Conciliadores" bordered={false} className="small-card" onClick={() => handleCardClick('conciliadores')}>
-                <h2>{totalConciliadores}</h2>
-              </Card>
-            </Col>
-            <Col span={12}>
-              <Card title="Quantidade de Conciliadores Disponíveis" bordered={false} className="small-card" onClick={() => handleCardClick('disponibilidades')}>
-                <h2>{totalConciliadoresDisponiveis}</h2>
-              </Card>
-            </Col>
-          </Row>
+        <Col xs={24} lg={12}>
           <Card title="Disponibilidade por Dia da Semana" bordered={false} className="large-card">
             <Column {...disponibilidadeConfig} />
           </Card>

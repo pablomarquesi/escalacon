@@ -51,59 +51,83 @@ const MenuList = () => {
         }
     };
 
+    const items = [
+        {
+            key: 'dashboard',
+            icon: <AppstoreOutlined />,
+            label: 'Dashboard'
+        },
+        {
+            key: 'home',
+            icon: <CalendarOutlined />,
+            label: 'Escala'
+        },
+        {
+            key: 'cadastro',
+            icon: <UserOutlined />,
+            label: 'Cadastro',
+            children: [
+                {
+                    key: 'conciliador',
+                    icon: <UserOutlined />,
+                    label: 'Conciliador'
+                },
+                {
+                    key: 'disponibilidade',
+                    icon: <HourglassOutlined />,
+                    label: 'Disponibilidade'
+                },
+                {
+                    key: 'status',
+                    icon: <CheckOutlined />,
+                    label: 'Status'
+                }
+            ]
+        },
+        {
+            key: 'locais',
+            icon: <EnvironmentOutlined />,
+            label: 'Locais',
+            children: [
+                {
+                    key: 'comarca',
+                    icon: <BankOutlined />,
+                    label: 'Comarca'
+                },
+                {
+                    key: 'juizado',
+                    icon: <PushpinOutlined />,
+                    label: 'Juizado'
+                },
+                {
+                    key: 'salavirtual',
+                    icon: <VideoCameraOutlined />,
+                    label: 'Sala Virtual'
+                }
+            ]
+        },
+        {
+            key: 'configuracoes',
+            icon: <SettingOutlined />,
+            label: 'Configurações',
+            children: [
+                {
+                    key: 'usuarios',
+                    icon: <UserOutlined />,
+                    label: 'Usuários'
+                }
+            ]
+        }
+    ];
+
     return (
         <Menu
             theme="dark"
             mode='inline'
             className='menu-bar'
             onClick={handleMenuClick}
-        >
-            <Menu.Item key="dashboard" icon={<AppstoreOutlined />}>
-                Dashboard
-            </Menu.Item>
-            <Menu.Item key="home" icon={<CalendarOutlined />}>
-                Escala
-            </Menu.Item>
-            <Menu.SubMenu
-                key="cadastro"
-                icon={<UserOutlined />}
-                title="Cadastro"
-            >
-                <Menu.Item key="conciliador" icon={<UserOutlined />}>
-                    Conciliador
-                </Menu.Item>
-                <Menu.Item key="disponibilidade" icon={<HourglassOutlined />}>
-                    Disponibilidade
-                </Menu.Item>
-                <Menu.Item key="status" icon={<CheckOutlined />}>
-                    Status
-                </Menu.Item>
-            </Menu.SubMenu>
-            <Menu.SubMenu
-                key="locais"
-                icon={<EnvironmentOutlined />}
-                title="Locais"
-            >
-                <Menu.Item key="comarca" icon={<BankOutlined />}>
-                    Comarca
-                </Menu.Item>
-                <Menu.Item key="juizado" icon={<PushpinOutlined />}>
-                    Juizado
-                </Menu.Item>
-                <Menu.Item key="salavirtual" icon={<VideoCameraOutlined />}>
-                    Sala Virtual
-                </Menu.Item>
-            </Menu.SubMenu>
-            <Menu.SubMenu
-                key="configuracoes"
-                icon={<SettingOutlined />}
-                title="Configurações"
-            >
-                <Menu.Item key="usuarios" icon={<UserOutlined />}>
-                    Usuários
-                </Menu.Item>
-            </Menu.SubMenu>
-        </Menu>
+            items={items}
+        />
     );
 };
 

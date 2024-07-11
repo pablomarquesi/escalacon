@@ -20,7 +20,7 @@ h1 {
 }
 
 .card, .small-card {
-  margin-bottom: 24px;
+  margin-bottom: 16px; /* Reduzido para diminuir o espaço entre os cards */
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   cursor: pointer; /* Adicionar cursor de ponteiro para indicar interatividade */
@@ -110,7 +110,7 @@ h1 {
 }
 
 .large-card {
-  height: 400px;
+  height: 550px; /* Aumentado para dar mais espaço aos gráficos */
 }
 
 .ant-card-body {
@@ -118,4 +118,19 @@ h1 {
   align-items: center;
   justify-content: center;
   padding: 16px;
+}
+
+/* Estilos para a barra de busca */
+.search-bar {
+  margin-right: 8px;
+  width: 40%;
+  max-width: 500px;
+  border-radius: 4px;
+  padding: 5px;
+}
+
+/* Estilos para os gráficos */
+.ant-charts-column rect {
+  height: 100px; /* Aumentar a altura das barras */
+  width: 15px; /* Diminuir a largura das barras */
 }

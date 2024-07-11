@@ -1,10 +1,11 @@
 import { PlusOutlined } from '@ant-design/icons';
-import { Button, Input, Table, Form, message } from 'antd';
+import { Button, Table, Form, message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import getTableColumns from "./getTableColumnsConciliador";
 import { fetchConciliadores, fetchMunicipios, deleteConciliadorService, saveConciliador } from "../services/conciliadorService";
 import ConciliadorModal from './ConciliadorModal';
 import moment from 'moment';
+import SearchBar from './SearchBar'; // Importe o novo componente
 
 const CadastroConciliador = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -111,7 +112,7 @@ const CadastroConciliador = () => {
         <>
             <div className="header-container">
                 <h3>Relação de Conciliadores</h3>
-                <Input placeholder="Buscar..." onChange={handleSearch} style={{ marginRight: 8, width: '40%' }} />
+                <SearchBar placeholder="Buscar..." onChange={handleSearch} />
                 <div className="button-group">
                     <Button 
                         icon={<PlusOutlined />} 

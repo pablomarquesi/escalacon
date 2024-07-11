@@ -7,11 +7,11 @@ import MenuList from './components/MenuList';
 import CadastroConciliador from './components/CadastroConciliador';
 import CadastroStatus from './components/CadastroStatus';
 import CadastroComarca from './components/CadastroComarca';
-import CalendarioConciliadores from './components/EscalaConciliadores';
+import CalendarioConciliadores from './components/CalendarioConciliadores/CalendarioConciliadores';
 import Disponibilidade from './components/Disponibilidade';
 import Dashboard from './components/Dashboard';
 import Juizado from './components/Juizado';
-import SalaVirtual from './components/SalaVirtual'; // Importando o componente de Sala Virtual
+import SalaVirtual from './components/SalaVirtual';
 
 const { Header, Sider, Content } = Layout;
 

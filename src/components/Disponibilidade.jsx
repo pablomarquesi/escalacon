@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Form, Checkbox, Button, Select, message, Modal, Row, Col, Input, Space, DatePicker } from 'antd';
+import { Table, Form, Checkbox, Button, Select, message, Modal, Row, Col, Space, DatePicker } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { fetchDisponibilidades, saveDisponibilidade, deleteDisponibilidade } from '../services/disponibilidadeService';
 import { fetchConciliadores } from '../services/conciliadorService';
 import moment from 'moment';
 import 'moment/locale/pt-br';
+import SearchBar from './SearchBar'; // Importe o novo componente
 
 moment.locale('pt-br');
 
 const { Option } = Select;
-const { Search } = Input;
 const { MonthPicker } = DatePicker;
 
 const Disponibilidade = () => {
@@ -182,11 +182,10 @@ const Disponibilidade = () => {
                     <h2 style={{ fontSize: '16px', margin: 0 }}>Gerenciar Disponibilidade</h2>
                 </Col>
                 <Col flex="auto" style={{ textAlign: 'center' }}>
-                    <Search
+                    <SearchBar
                         placeholder="Buscar conciliador"
-                        value={searchText}
                         onChange={handleSearch}
-                        style={{ width: 400 }}
+                        value={searchText}
                     />
                 </Col>
                 <Col flex="none">
