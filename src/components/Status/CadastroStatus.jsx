@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Button, Table, message, Form, Spin } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
-import { fetchStatus, saveStatus, deleteStatus } from '../services/statusService';
+import { fetchStatus, saveStatus, deleteStatus } from '../../services/statusService';
 import StatusModal from './StatusModal';
-import getTableColumnsStatus from './getTableColumnsStatus';
+import getTableColumnsStatus from '../getTableColumnsStatus';
 import debounce from 'lodash/debounce';
-import HeaderSection from '../components/HeaderSection'; // Importe o HeaderSection
+import HeaderSection from '../HeaderSection'; // Importe o HeaderSection
 
 const CadastroStatus = () => {
     const [statusList, setStatusList] = useState([]);

@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Table, message, Form } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
-import { fetchComarcas, saveComarca, deleteComarca } from '../services/comarcaService';
+import { fetchComarcas, saveComarca, deleteComarca } from '../../services/comarcaService'; // Caminho ajustado
 import ComarcaModal from './ComarcaModal';
 import getTableColumnsComarca from './getTableColumnsComarca';
-import HeaderSection from './HeaderSection'; // Importando o HeaderSection
+import HeaderSection from '../HeaderSection';
 
 const CadastroComarca = () => {
     const [comarcaList, setComarcaList] = useState([]);

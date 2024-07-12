@@ -2,11 +2,10 @@ import React, { useState } from 'react';
 import { Layout, Button } from 'antd';
 import { MenuUnfoldOutlined, MenuFoldOutlined } from '@ant-design/icons';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Logo from './components/Logo';
 import MenuList from './components/MenuList';
-import CadastroConciliador from './components/CadastroConciliador';
-import CadastroStatus from './components/CadastroStatus';
-import CadastroComarca from './components/CadastroComarca';
+import CadastroConciliador from './components/Conciliadores/CadastroConciliador';
+import CadastroStatus from './components/Status/CadastroStatus';
+import CadastroComarca from './components/Comarca/CadastroComarca';
 import CalendarioConciliadores from './components/CalendarioConciliadores/CalendarioConciliadores';
 import Disponibilidade from "./components/Disponibilidade/Disponibilidade";
 import Dashboard from './components/Dashboard';
@@ -28,7 +27,6 @@ function App() {
           theme='dark'
           className='sidebar'>
           
-          <Logo collapsed={collapsed} />
           <MenuList />
         </Sider>
         <Layout className="site-layout">

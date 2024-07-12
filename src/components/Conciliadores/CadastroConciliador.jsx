@@ -2,10 +2,10 @@ import { PlusOutlined } from '@ant-design/icons';
 import { Button, Table, Form, message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import getTableColumns from "./getTableColumnsConciliador";
-import { fetchConciliadores, fetchMunicipios, deleteConciliadorService, saveConciliador } from "../services/conciliadorService";
-import ConciliadorModal from './ConciliadorModal';
+import { fetchConciliadores, fetchMunicipios, deleteConciliadorService, saveConciliador } from "../../services/conciliadorService";
+import ConciliadorModal from '../ConciliadorModal';
 import moment from 'moment';
-import HeaderSection from './HeaderSection';
+import HeaderSection from '../HeaderSection';
 
 const CadastroConciliador = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
