@@ -8,10 +8,10 @@ import CadastroConciliador from './components/CadastroConciliador';
 import CadastroStatus from './components/CadastroStatus';
 import CadastroComarca from './components/CadastroComarca';
 import CalendarioConciliadores from './components/CalendarioConciliadores/CalendarioConciliadores';
-import Disponibilidade from './components/Disponibilidade';
+import Disponibilidade from "./components/Disponibilidade/Disponibilidade";
 import Dashboard from './components/Dashboard';
-import Juizado from './components/Juizado';
-import SalaVirtual from './components/SalaVirtual';
+import Juizado from "./components/Juizado/Juizado";
+import SalaVirtual from "./components/SalaVirtual/SalaVirtual";
 
 const { Header, Sider, Content } = Layout;
 

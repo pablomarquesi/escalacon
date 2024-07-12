@@ -6,15 +6,17 @@ import { Card, Row, Col } from 'antd';
 const Dashboard = () => {
   const [salasPorJuizadoData, setSalasPorJuizadoData] = useState([]);
   const [disponibilidadeData, setDisponibilidadeData] = useState([]);
+  const [statusData, setStatusData] = useState([]);
   const [totalConciliadores, setTotalConciliadores] = useState(0);
   const [totalSalasVirtuais, setTotalSalasVirtuais] = useState(0);
   const [totalJuizados, setTotalJuizados] = useState(0);
   const [totalConciliadoresDisponiveis, setTotalConciliadoresDisponiveis] = useState(0);
-  const [filter, setFilter] = useState(null); // Estado para o filtro
+  const [filter, setFilter] = useState(null);
 
   useEffect(() => {
     fetchSalasPorJuizadoData();
     fetchDisponibilidadeData();
+    fetchStatusData();
     fetchTotalConciliadores();
     fetchTotalSalasVirtuais();
     fetchTotalJuizados();
@@ -62,6 +64,25 @@ const Dashboard = () => {
       setDisponibilidadeData(chartData);
     } catch (error) {
       console.error('Erro ao buscar dados de disponibilidade:', error);
+    }
+  };
+
+  const fetchStatusData = async () => {
+    try {
+      const response = await axios.get('http://localhost:3000/api/disponibilidades', { params: { filter } });
+      const data = response.data.reduce((acc, disponibilidade) => {
+        const status = disponibilidade.nome_status || 'Sem Status';
+        if (!acc[status]) {
+          acc[status] = 0;
+        }
+        acc[status]++;
+        return acc;
+      }, {});
+
+      const chartData = Object.keys(data).map(key => ({ status: key, value: data[key] }));
+      setStatusData(chartData);
+    } catch (error) {
+      console.error('Erro ao buscar dados de status:', error);
     }
   };
 
@@ -143,7 +164,35 @@ const Dashboard = () => {
       day: { alias: 'Dia da Semana' },
       value: { alias: 'Disponibilidade' },
     },
-    height: 300,
+    height: 400, // Aumentar a altura das barras
+    columnWidthRatio: 0.8,
+    barWidthRatio: 0.8, // Aumentar a largura das barras
+  };
+
+  const statusConfig = {
+    appendPadding: 10,
+    data: statusData,
+    angleField: 'value',
+    colorField: 'status',
+    radius: 0.8,
+    innerRadius: 0.6, // Transforma o gráfico em rosca
+    label: {
+      type: 'inner',
+      offset: '-30%',
+      content: '{value}',
+      style: { fontSize: 12, textAlign: 'center' },
+    },
+    tooltip: {
+      fields: ['status', 'value'],
+      formatter: datum => ({ name: datum.status, value: datum.value }),
+    },
+    interactions: [{ type: 'element-selected' }, { type: 'element-active' }],
+    statistic: {
+      title: false,
+      content: {
+        style: { whiteSpace: 'pre-wrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+      },
+    },
   };
 
   return (
@@ -172,14 +221,19 @@ const Dashboard = () => {
         </Col>
       </Row>
       <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
-        <Col xs={24} lg={12}>
+        <Col xs={24} lg={8}>
           <Card title="Quantidade de Salas por Juizado" bordered={false} className="large-card">
             <Pie {...salasPorJuizadoConfig} />
           </Card>
         </Col>
-        <Col xs={24} lg={12}>
+        <Col xs={24} lg={8}>
           <Card title="Disponibilidade por Dia da Semana" bordered={false} className="large-card">
             <Column {...disponibilidadeConfig} />
+          </Card>
+        </Col>
+        <Col xs={24} lg={8}>
+          <Card title="Status das Disponibilidades" bordered={false} className="large-card">
+            <Pie {...statusConfig} />
           </Card>
         </Col>
       </Row>

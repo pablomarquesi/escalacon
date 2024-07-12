@@ -123,14 +123,50 @@ h1 {
 /* Estilos para a barra de busca */
 .search-bar {
   margin-right: 8px;
-  width: 40%;
-  max-width: 500px;
+  width: 60%; /* Aumentar a largura */
+  max-width: 600px; /* Aumentar o valor máximo para a largura */
   border-radius: 4px;
-  padding: 5px;
+  padding: 4px 8px; /* Diminuir a altura */
+  font-size: 14px; /* Diminuir o tamanho da fonte */
+  border: 1px solid #d9d9d9;
+  transition: all 0.3s ease-in-out;
+}
+
+.search-bar:focus {
+  border-color: #1890ff;
+  box-shadow: 0 0 8px rgba(24, 144, 255, 0.2);
+}
+
+.search-bar::placeholder {
+  color: #bfbfbf;
 }
 
 /* Estilos para os gráficos */
 .ant-charts-column rect {
   height: 100px; /* Aumentar a altura das barras */
   width: 15px; /* Diminuir a largura das barras */
+}
+
+/* Estilos adicionais para o header */
+.header-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.header-section h2 {
+  margin: 0;
+  font-size: 18px; /* Diminuir o tamanho da fonte */
+}
+
+.header-section .search-bar {
+  flex-grow: 1;
+  margin: 0 16px;
+}
+
+.header-section .button-group {
+  display: flex;
+  gap: 8px;
 }

@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Button, Input, Table, message, Form, Spin } from 'antd';
+import { Button, Table, message, Form, Spin } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { fetchStatus, saveStatus, deleteStatus } from '../services/statusService';
 import StatusModal from './StatusModal';
 import getTableColumnsStatus from './getTableColumnsStatus';
 import debounce from 'lodash/debounce';
+import HeaderSection from '../components/HeaderSection'; // Importe o HeaderSection
 
 const CadastroStatus = () => {
     const [statusList, setStatusList] = useState([]);
@@ -60,7 +61,9 @@ const CadastroStatus = () => {
             console.log('Enviando dados:', statusData); // Log dos dados enviados
 
             await saveStatus(statusData);
-            await fetchData();
+            const statusListData = await fetchStatus();
+            const sortedStatus = statusListData.sort((a, b) => a.nome_status.localeCompare(b.nome_status));
+            setStatusList(sortedStatus);
             setIsModalVisible(false);
             form.resetFields();
             message.success(editingRecord ? 'Status atualizado com sucesso' : 'Status adicionado com sucesso');
@@ -76,7 +79,9 @@ const CadastroStatus = () => {
         setLoading(true);
         try {
             await deleteStatus(id);
-            await fetchData();
+            const statusListData = await fetchStatus();
+            const sortedStatus = statusListData.sort((a, b) => a.nome_status.localeCompare(b.nome_status));
+            setStatusList(sortedStatus);
             message.success('Status excluído com sucesso');
         } catch (error) {
             console.error('Erro ao excluir status:', error);
@@ -105,20 +110,20 @@ const CadastroStatus = () => {
     const columns = getTableColumnsStatus(showModal, handleDelete);
 
     return (
-        <>
-            <div className="header-container">
-                <h3>Relação de Status</h3>
-                <Input placeholder="Buscar..." onChange={handleSearch} style={{ marginRight: 8, width: '40%' }} />
-                <div className="button-group">
-                    <Button 
-                        icon={<PlusOutlined />} 
-                        onClick={() => showModal(null)} 
-                        type="primary"
-                        style={{ marginRight: 8 }}>
-                        Adicionar
-                    </Button>
-                </div>
-            </div>
+        <div>
+            <HeaderSection
+                title="Relação de Status"
+                onSearch={handleSearch}
+                searchText={searchText}
+            >
+                <Button 
+                    icon={<PlusOutlined />} 
+                    onClick={() => showModal(null)} 
+                    type="primary"
+                    style={{ marginRight: 8 }}>
+                    Adicionar
+                </Button>
+            </HeaderSection>
             <div className="table-container">
                 <Spin spinning={loading}>
                     <Table 
@@ -140,7 +145,7 @@ const CadastroStatus = () => {
                 onSubmit={handleSubmit}
                 form={form}
             />
-        </>
+        </div>
     );
 };
 

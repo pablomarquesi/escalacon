@@ -22,9 +22,9 @@ export const saveDisponibilidade = async (disponibilidades) => {
     }
 };
 
-export const deleteDisponibilidade = async (conciliador_id, mes, dia_da_semana = null) => {
+export const deleteDisponibilidade = async (conciliador_id, mes, ano, dia_da_semana = null) => {
     try {
-        let url = `${API_URL}/disponibilidades/${conciliador_id}/${mes}`;
+        let url = `${API_URL}/disponibilidades/${conciliador_id}/${mes}/${ano}`;
         if (dia_da_semana) {
             url += `/${dia_da_semana}`;
         }

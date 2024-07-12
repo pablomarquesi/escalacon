@@ -29,7 +29,7 @@ export function registerApiRoutes(app) {
     // Rotas para disponibilidades
     app.get('/api/disponibilidades', fetchDisponibilidades);
     app.post('/api/disponibilidades', addDisponibilidade);
-    app.delete('/api/disponibilidades/:conciliador_id/:mes/:dia_da_semana?', deleteDisponibilidade);
+    app.delete('/api/disponibilidades/:conciliador_id/:mes/:ano/:dia_da_semana?', deleteDisponibilidade);
 
     // Rotas para juizados
     app.get('/api/juizados', fetchJuizados);

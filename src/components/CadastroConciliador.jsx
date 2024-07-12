@@ -5,7 +5,7 @@ import getTableColumns from "./getTableColumnsConciliador";
 import { fetchConciliadores, fetchMunicipios, deleteConciliadorService, saveConciliador } from "../services/conciliadorService";
 import ConciliadorModal from './ConciliadorModal';
 import moment from 'moment';
-import SearchBar from './SearchBar'; // Importe o novo componente
+import HeaderSection from './HeaderSection';
 
 const CadastroConciliador = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -110,19 +110,19 @@ const CadastroConciliador = () => {
 
     return (
         <>
-            <div className="header-container">
-                <h3>Relação de Conciliadores</h3>
-                <SearchBar placeholder="Buscar..." onChange={handleSearch} />
-                <div className="button-group">
-                    <Button 
-                        icon={<PlusOutlined />} 
-                        onClick={showModal}
-                        type="primary" 
-                        style={{ marginRight: 8 }}>
-                        Adicionar
-                    </Button>
-                </div>
-            </div>
+            <HeaderSection
+                title="Relação de Conciliadores"
+                onSearch={handleSearch}
+                searchText={searchText}
+            >
+                <Button 
+                    icon={<PlusOutlined />} 
+                    onClick={showModal}
+                    type="primary" 
+                >
+                    Adicionar
+                </Button>
+            </HeaderSection>
             <div className="table-container">
                 <Table 
                     dataSource={filteredConciliadores} 

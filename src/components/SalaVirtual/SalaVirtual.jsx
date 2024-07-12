@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Form, Input, Button, Select, Modal, message, Space } from 'antd';
-import { fetchSalasVirtuais, saveSalaVirtual, deleteSalaVirtual } from '../services/salaVirtualService';
-import { fetchJuizados } from '../services/juizadoService';
+import { fetchSalasVirtuais, saveSalaVirtual, deleteSalaVirtual } from '../../services/salaVirtualService';
+import { fetchJuizados } from '../../services/juizadoService';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import HeaderSection from '../HeaderSection'; // Certifique-se de que o caminho está correto
 
 const { Option } = Select;
 
@@ -12,6 +13,7 @@ const SalaVirtual = () => {
     const [juizados, setJuizados] = useState([]);
     const [editingSalaVirtual, setEditingSalaVirtual] = useState(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [searchText, setSearchText] = useState('');
 
     useEffect(() => {
         loadSalasVirtuais();
@@ -71,6 +73,14 @@ const SalaVirtual = () => {
         setIsModalVisible(false);
     };
 
+    const handleSearch = (e) => {
+        setSearchText(e.target.value.toLowerCase());
+    };
+
+    const filteredSalasVirtuais = salasVirtuais.filter(sala =>
+        sala.nome_sala_virtual.toLowerCase().includes(searchText)
+    );
+
     const columns = [
         {
             title: 'Juizado',
@@ -114,15 +124,20 @@ const SalaVirtual = () => {
 
     return (
         <div>
-            <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => setIsModalVisible(true)}
-                style={{ marginBottom: 16 }}
+            <HeaderSection
+                title="Gerenciar Salas Virtuais"
+                onSearch={handleSearch}
+                searchText={searchText}
             >
-                Adicionar Sala Virtual
-            </Button>
-            <Table columns={columns} dataSource={salasVirtuais} rowKey="sala_virtual_id" />
+                <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={() => setIsModalVisible(true)}
+                >
+                    Adicionar Sala Virtual
+                </Button>
+            </HeaderSection>
+            <Table columns={columns} dataSource={filteredSalasVirtuais} rowKey="sala_virtual_id" />
             <Modal
                 title={editingSalaVirtual ? 'Editar Sala Virtual' : 'Adicionar Sala Virtual'}
                 visible={isModalVisible}

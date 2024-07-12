@@ -12,11 +12,12 @@ export async function testDbConnection(req, res) {
 export async function fetchDisponibilidades(req, res) {
     try {
         const [disponibilidades] = await db.query(`
-            SELECT cd.conciliador_id, c.nome_conciliador, cd.mes, GROUP_CONCAT(cd.dia_da_semana ORDER BY cd.dia_da_semana ASC) AS dias_da_semana
+            SELECT cd.conciliador_id, c.nome_conciliador, cd.mes, cd.ano, GROUP_CONCAT(cd.dia_da_semana ORDER BY cd.dia_da_semana ASC) AS dias_da_semana, cd.status_id, s.nome_status
             FROM conciliador_disponibilidade AS cd
             INNER JOIN conciliador AS c ON cd.conciliador_id = c.conciliador_id
-            GROUP BY cd.conciliador_id, cd.mes, c.nome_conciliador
-            ORDER BY c.nome_conciliador ASC, cd.mes ASC;
+            INNER JOIN status AS s ON cd.status_id = s.status_id
+            GROUP BY cd.conciliador_id, cd.mes, cd.ano, c.nome_conciliador, cd.status_id, s.nome_status
+            ORDER BY c.nome_conciliador ASC, cd.mes ASC, cd.ano ASC;
         `);
         res.json(disponibilidades);
     } catch (error) {
@@ -29,9 +30,9 @@ export async function addDisponibilidade(req, res) {
     try {
         for (const disponibilidade of disponibilidades) {
             await db.query(`
-                INSERT INTO conciliador_disponibilidade (conciliador_id, dia_da_semana, mes)
-                VALUES (?, ?, ?)
-            `, [disponibilidade.conciliador_id, disponibilidade.dia_da_semana, disponibilidade.mes]);
+                INSERT INTO conciliador_disponibilidade (conciliador_id, dia_da_semana, mes, ano, status_id)
+                VALUES (?, ?, ?, ?, ?)
+            `, [disponibilidade.conciliador_id, disponibilidade.dia_da_semana, disponibilidade.mes, disponibilidade.ano, disponibilidade.status_id]);
         }
         res.status(201).json({ message: "Disponibilidades adicionadas com sucesso." });
     } catch (error) {
@@ -40,10 +41,10 @@ export async function addDisponibilidade(req, res) {
 }
 
 export async function deleteDisponibilidade(req, res) {
-    const { conciliador_id, mes, dia_da_semana } = req.params;
+    const { conciliador_id, mes, ano, dia_da_semana } = req.params;
     try {
-        let query = `DELETE FROM conciliador_disponibilidade WHERE conciliador_id = ? AND mes = ?`;
-        let params = [conciliador_id, mes];
+        let query = `DELETE FROM conciliador_disponibilidade WHERE conciliador_id = ? AND mes = ? AND ano = ?`;
+        let params = [conciliador_id, mes, ano];
         if (dia_da_semana) {
             query += ` AND dia_da_semana = ?`;
             params.push(dia_da_semana);
@@ -59,4 +60,3 @@ export async function deleteDisponibilidade(req, res) {
         res.status(500).json({ error: 'Erro no servidor ao excluir disponibilidades' });
     }
 }
-

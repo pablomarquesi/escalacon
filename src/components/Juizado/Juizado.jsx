@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Form, Input, Button, Select, Modal, message, Space } from 'antd';
-import { fetchJuizados, saveJuizado, deleteJuizado } from '../services/juizadoService';
-import { fetchComarcas } from '../services/comarcaService';
+import { fetchJuizados, saveJuizado, deleteJuizado } from '../../services/juizadoService';
+import { fetchComarcas } from '../../services/comarcaService';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import HeaderSection from '../HeaderSection';
 
 const { Option } = Select;
 
@@ -12,6 +13,7 @@ const Juizado = () => {
     const [comarcas, setComarcas] = useState([]);
     const [editingJuizado, setEditingJuizado] = useState(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [searchText, setSearchText] = useState('');
 
     useEffect(() => {
         loadJuizados();
@@ -71,6 +73,14 @@ const Juizado = () => {
         setIsModalVisible(false);
     };
 
+    const handleSearch = (e) => {
+        setSearchText(e.target.value.toLowerCase());
+    };
+
+    const filteredJuizados = juizados.filter(juizado =>
+        juizado.nome_juizado.toLowerCase().includes(searchText)
+    );
+
     const columns = [
         {
             title: 'Comarca',
@@ -104,15 +114,20 @@ const Juizado = () => {
 
     return (
         <div>
-            <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => setIsModalVisible(true)}
-                style={{ marginBottom: 16 }}
+            <HeaderSection
+                title="Gerenciar Juizados"
+                onSearch={handleSearch}
+                searchText={searchText}
             >
-                Adicionar Juizado
-            </Button>
-            <Table columns={columns} dataSource={juizados} rowKey="juizado_id" />
+                <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={() => setIsModalVisible(true)}
+                >
+                    Adicionar Juizado
+                </Button>
+            </HeaderSection>
+            <Table columns={columns} dataSource={filteredJuizados} rowKey="juizado_id" />
             <Modal
                 title={editingJuizado ? 'Editar Juizado' : 'Adicionar Juizado'}
                 visible={isModalVisible}

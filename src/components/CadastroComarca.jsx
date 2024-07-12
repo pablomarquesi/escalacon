@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Input, Table, message, Form } from 'antd';
+import { Button, Table, message, Form } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { fetchComarcas, saveComarca, deleteComarca } from '../services/comarcaService';
 import ComarcaModal from './ComarcaModal';
 import getTableColumnsComarca from './getTableColumnsComarca';
+import HeaderSection from './HeaderSection'; // Importando o HeaderSection
 
 const CadastroComarca = () => {
     const [comarcaList, setComarcaList] = useState([]);
@@ -97,19 +98,19 @@ const CadastroComarca = () => {
 
     return (
         <>
-            <div className="header-container">
-                <h3>Relação de Comarcas</h3>
-                <Input placeholder="Buscar..." onChange={handleSearch} style={{ marginRight: 8, width: '40%' }} />
-                <div className="button-group">
-                    <Button 
-                        icon={<PlusOutlined />} 
-                        onClick={() => showModal(null)} 
-                        type="primary"
-                        style={{ marginRight: 8 }}>
-                        Adicionar
-                    </Button>
-                </div>
-            </div>
+            <HeaderSection
+                title="Relação de Comarcas"
+                onSearch={handleSearch}
+                searchText={searchText}
+            >
+                <Button 
+                    icon={<PlusOutlined />} 
+                    onClick={() => showModal(null)} 
+                    type="primary"
+                    style={{ marginRight: 8 }}>
+                    Adicionar
+                </Button>
+            </HeaderSection>
             <div className="table-container">
                 <Table 
                     dataSource={filteredComarcas} 

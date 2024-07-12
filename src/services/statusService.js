@@ -7,10 +7,10 @@ export const fetchStatus = async () => {
         const response = await axios.get(`${API_URL}/status`);
         return response.data;
     } catch (error) {
-        console.error('Erro ao buscar status:', error);
+        console.error('Erro ao buscar statuses:', error);
         throw error;
     }
-};
+}
 
 export const saveStatus = async (status) => {
     try {
