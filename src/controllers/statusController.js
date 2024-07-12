@@ -25,6 +25,7 @@ export async function addStatus(req, res) {
 
     try {
         const result = await db.query('INSERT INTO status (nome_status, descricao_status) VALUES (?, ?)', [nome_status, descricao_status]);
+        console.log('Resultado da inserção:', result);
         if (result.affectedRows > 0) {
             res.status(201).json({ message: "Status adicionado com sucesso." });
         } else {

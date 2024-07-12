@@ -10,7 +10,7 @@ export const fetchStatus = async () => {
         console.error('Erro ao buscar statuses:', error);
         throw error;
     }
-}
+};
 
 export const saveStatus = async (status) => {
     try {
@@ -31,7 +31,7 @@ export const saveStatus = async (status) => {
             return response.data;
         }
     } catch (error) {
-        console.error('Erro ao salvar status:', error);
+        console.error('Erro ao salvar status:', error.response || error.message);
         throw error;
     }
 };
