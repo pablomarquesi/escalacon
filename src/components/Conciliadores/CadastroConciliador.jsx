@@ -1,3 +1,4 @@
+// CadastroConciliador.jsx
 import { PlusOutlined } from '@ant-design/icons';
 import { Button, Form, message } from 'antd';
 import React, { useEffect, useState } from 'react';
@@ -7,6 +8,7 @@ import ConciliadorModal from '../ConciliadorModal';
 import moment from 'moment';
 import HeaderSection from '../common/HeaderSection';
 import CustomTable from '../common/CustomTable';
+import SearchBar from '../common/SearchBar';
 
 const CadastroConciliador = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -147,7 +149,8 @@ const CadastroConciliador = () => {
                 <Button 
                     icon={<PlusOutlined />} 
                     onClick={showModal}
-                    type="primary" 
+                    type="primary"
+                    className="custom-button"
                 >
                     Adicionar
                 </Button>

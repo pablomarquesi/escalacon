@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins&family=Monoton:wght@200;300;400;500;600;700;800&display=swap');
 
+/* Reseta os estilos básicos */
 * {
   margin: 0;
   padding: 0;
@@ -69,6 +70,10 @@ h1 {
 
 .table-container {
   margin-top: 5px;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .header-container {
@@ -154,6 +159,7 @@ h1 {
   justify-content: space-between;
   padding: 16px 0;
   border-bottom: 1px solid #e8e8e8;
+  margin-bottom: 0; /* Adicionado para remover a margem inferior */
 }
 
 .header-section h2 {
@@ -169,4 +175,60 @@ h1 {
 .header-section .button-group {
   display: flex;
   gap: 8px;
+}
+
+/* Estilos personalizados para a tabela */
+.custom-table .ant-table {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  background-color: #fff;
+}
+
+.custom-table .ant-table-thead > tr > th {
+  background-color: #f0f2f5;
+  color: #000;
+  font-weight: 600;
+  text-align: center;
+}
+
+.custom-table .ant-table-tbody > tr > td {
+  text-align: center;
+  padding: 8px; /* Diminui a altura das linhas */
+}
+
+.custom-table .ant-table-tbody > tr > td.name-column {
+  text-align: left; /* Justifica à esquerda o nome do conciliador */
+}
+
+.custom-table .ant-table-tbody > tr:hover {
+  background-color: #e6f7ff;
+}
+
+.custom-table .ant-pagination {
+  margin-right: 16px;
+}
+
+/* Estilos para botões */
+.custom-button {
+  background-color: #1890ff;
+  color: #fff;
+  border-radius: 4px;
+  border: none;
+  padding: 8px 16px;
+  transition: all 0.3s ease-in-out;
+}
+
+.custom-button:hover {
+  background-color: #40a9ff;
+}
+
+.custom-button:focus {
+  outline: none;
+  box-shadow: 0 0 8px rgba(24, 144, 255, 0.2);
+}
+
+/* Reduzir o espaço entre header e o ant-layout-header */
+.ant-layout-header {
+  padding: 0; /* Reduzir o padding para diminuir o espaço */
 }

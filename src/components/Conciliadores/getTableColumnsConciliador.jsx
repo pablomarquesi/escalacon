@@ -1,3 +1,4 @@
+// getTableColumnsConciliador.jsx
 import React from 'react';
 import { Button, Popconfirm, Switch } from 'antd';
 import { EditOutlined } from '@ant-design/icons';
@@ -22,6 +23,7 @@ const getTableColumns = (onEdit, onToggleStatus) => [
     title: 'Nome',
     dataIndex: 'nome_conciliador',
     key: 'nome_conciliador',
+    className: 'name-column', // Adiciona a classe name-column
     sorter: (a, b) => (a.nome_conciliador || "").toString().localeCompare((b.nome_conciliador || "").toString()),
   },
   {
@@ -68,23 +70,18 @@ const getTableColumns = (onEdit, onToggleStatus) => [
           type="default"
           style={{ marginRight: 8 }}
         />
-        {record.status_conciliador === 'Ativo' ? (
-          <Popconfirm
-            title="Tem certeza que deseja inativar este conciliador?"
-            onConfirm={() => onToggleStatus(record.conciliador_id, record.status_conciliador)}
-            okText="Sim"
-            cancelText="Não"
-          >
-            <Switch
-              checked={record.status_conciliador === 'Ativo'}
-            />
-          </Popconfirm>
-        ) : (
+        <Popconfirm
+          title={`Tem certeza que deseja ${record.status_conciliador === 'Ativo' ? 'inativar' : 'ativar'} este conciliador?`}
+          onConfirm={() => onToggleStatus(record.conciliador_id, record.status_conciliador)}
+          okText="Sim"
+          cancelText="Não"
+        >
           <Switch
             checked={record.status_conciliador === 'Ativo'}
-            onChange={() => onToggleStatus(record.conciliador_id, record.status_conciliador)}
+            checkedChildren="Ativo"
+            unCheckedChildren="Inativo"
           />
-        )}
+        </Popconfirm>
       </span>
     ),
   },
