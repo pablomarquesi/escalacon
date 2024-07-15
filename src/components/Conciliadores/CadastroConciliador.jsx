@@ -1,11 +1,12 @@
 import { PlusOutlined } from '@ant-design/icons';
-import { Button, Table, Form, message } from 'antd';
+import { Button, Form, message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import getTableColumns from "./getTableColumnsConciliador";
-import { fetchConciliadores, fetchMunicipios, deleteConciliadorService, saveConciliador } from "../../services/conciliadorService";
+import { fetchConciliadores, fetchMunicipios, toggleConciliadorStatus, saveConciliador } from "../../services/conciliadorService";
 import ConciliadorModal from '../ConciliadorModal';
 import moment from 'moment';
-import HeaderSection from '../HeaderSection';
+import HeaderSection from '../common/HeaderSection';
+import CustomTable from '../common/CustomTable';
 
 const CadastroConciliador = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -18,8 +19,17 @@ const CadastroConciliador = () => {
     useEffect(() => {
         const initData = async () => {
             try {
-                const conciliadoresData = await fetchConciliadores();
+                let conciliadoresData = await fetchConciliadores();
                 const municipiosData = await fetchMunicipios();
+                
+                // Ordenação dos conciliadores
+                conciliadoresData = conciliadoresData.sort((a, b) => {
+                    if (a.status_conciliador !== b.status_conciliador) {
+                        return a.status_conciliador === 'Ativo' ? -1 : 1;
+                    }
+                    return a.nome_conciliador.localeCompare(b.nome_conciliador);
+                });
+
                 setConciliadores(conciliadoresData);
                 setMunicipios(municipiosData);
             } catch (error) {
@@ -39,19 +49,29 @@ const CadastroConciliador = () => {
         setIsModalVisible(true);
     };
 
-    const handleDelete = async (id) => {
+    const handleToggleStatus = async (id, currentStatus) => {
+        const newStatus = currentStatus === 'Ativo' ? 'Inativo' : 'Ativo';
         try {
-            await deleteConciliadorService(id);
-            message.success('Conciliador excluído com sucesso');
-            const conciliadoresData = await fetchConciliadores();
+            await toggleConciliadorStatus(id, newStatus);
+            message.success(`Conciliador ${newStatus === 'Ativo' ? 'ativado' : 'inativado'} com sucesso`);
+            let conciliadoresData = await fetchConciliadores();
+
+            // Ordenação dos conciliadores
+            conciliadoresData = conciliadoresData.sort((a, b) => {
+                if (a.status_conciliador !== b.status_conciliador) {
+                    return a.status_conciliador === 'Ativo' ? -1 : 1;
+                }
+                return a.nome_conciliador.localeCompare(b.nome_conciliador);
+            });
+
             setConciliadores(conciliadoresData);
         } catch (error) {
-            console.error('Erro ao excluir conciliador:', error);
-            message.error('Erro ao excluir conciliador. Tente novamente.');
+            console.error('Erro ao alterar status do conciliador:', error);
+            message.error('Erro ao alterar status do conciliador. Tente novamente.');
         }
     };
 
-    const columns = getTableColumns(handleEdit, handleDelete);
+    const columns = getTableColumns(handleEdit, handleToggleStatus);
 
     const showModal = () => {
         setEditingRecord(null);
@@ -80,7 +100,16 @@ const CadastroConciliador = () => {
             }
 
             await saveConciliador(formattedValues);
-            const conciliadoresData = await fetchConciliadores();
+            let conciliadoresData = await fetchConciliadores();
+
+            // Ordenação dos conciliadores
+            conciliadoresData = conciliadoresData.sort((a, b) => {
+                if (a.status_conciliador !== b.status_conciliador) {
+                    return a.status_conciliador === 'Ativo' ? -1 : 1;
+                }
+                return a.nome_conciliador.localeCompare(b.nome_conciliador);
+            });
+
             setConciliadores(conciliadoresData);
             setIsModalVisible(false);
             form.resetFields();
@@ -123,19 +152,11 @@ const CadastroConciliador = () => {
                     Adicionar
                 </Button>
             </HeaderSection>
-            <div className="table-container">
-                <Table 
-                    dataSource={filteredConciliadores} 
-                    columns={columns} 
-                    rowKey="conciliador_id"
-                    pagination={{
-                        pageSizeOptions: ['10', '20', '50', '100'],
-                        showSizeChanger: true,
-                        defaultPageSize: 10,
-                        showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} itens`
-                    }}
-                />
-            </div>
+            <CustomTable 
+                dataSource={filteredConciliadores} 
+                columns={columns} 
+                rowKey="conciliador_id"
+            />
             <ConciliadorModal
                 isVisible={isModalVisible}
                 onCancel={handleCancel}

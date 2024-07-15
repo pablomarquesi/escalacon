@@ -1,6 +1,6 @@
 import React from 'react';
 import { Input } from 'antd';
-import '../index.css';
+import '../../index.css';
 
 const SearchBar = ({ placeholder, onChange, value }) => {
     return (
@@ -8,7 +8,7 @@ const SearchBar = ({ placeholder, onChange, value }) => {
             placeholder={placeholder} 
             onChange={onChange} 
             value={value}
-            className="search-bar" // Aplique a classe CSS
+            className="search-bar"
         />
     );
 };

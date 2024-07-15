@@ -27,12 +27,12 @@ export const saveConciliador = async (conciliador) => {
     }
 };
 
-export const deleteConciliadorService = async (id) => {
+export const toggleConciliadorStatus = async (id, status) => {
     try {
-        const response = await axios.delete(`${API_URL}/conciliadores/${id}`);
+        const response = await axios.patch(`${API_URL}/conciliadores/${id}`, { status_conciliador: status });
         return response.data;
     } catch (error) {
-        console.error('Erro ao excluir conciliador:', error);
+        console.error('Erro ao alterar status do conciliador:', error);
         throw error;
     }
 };

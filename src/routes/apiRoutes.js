@@ -1,4 +1,4 @@
-import { addConciliador, deleteConciliadores, fetchConciliadores, testDbConnection, updateConciliador } from '../controllers/conciliadorController.js';
+import { addConciliador, deleteConciliadores, fetchConciliadores, testDbConnection, updateConciliador, toggleConciliadorStatus } from '../controllers/conciliadorController.js';
 import { fetchStatus, addStatus, updateStatus, deleteStatus } from '../controllers/statusController.js';
 import { addComarca, deleteComarca, fetchComarcas, updateComarca } from '../controllers/comarcaController.js';
 import { addDisponibilidade, deleteDisponibilidade, fetchDisponibilidades } from '../controllers/disponibilidadeController.js';
@@ -13,6 +13,7 @@ export function registerApiRoutes(app) {
     app.put('/api/conciliadores/:id', updateConciliador);
     app.post('/api/conciliadores', addConciliador);
     app.delete('/api/conciliadores/:id', deleteConciliadores);
+    app.patch('/api/conciliadores/:id', toggleConciliadorStatus); // Nova rota para alterar status
 
     // Rotas para comarcas
     app.get('/api/comarcas', fetchComarcas);

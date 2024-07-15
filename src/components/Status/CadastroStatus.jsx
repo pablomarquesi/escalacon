@@ -5,7 +5,7 @@ import { fetchStatus, saveStatus, deleteStatus } from '../../services/statusServ
 import StatusModal from './StatusModal';
 import getTableColumnsStatus from '../getTableColumnsStatus';
 import debounce from 'lodash/debounce';
-import HeaderSection from '../HeaderSection';
+import HeaderSection from '../common/HeaderSection';
 
 const CadastroStatus = () => {
     const [statusList, setStatusList] = useState([]);

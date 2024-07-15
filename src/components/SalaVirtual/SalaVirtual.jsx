@@ -3,7 +3,7 @@ import { Table, Form, Input, Button, Select, Modal, message, Space } from 'antd'
 import { fetchSalasVirtuais, saveSalaVirtual, deleteSalaVirtual } from '../../services/salaVirtualService';
 import { fetchJuizados } from '../../services/juizadoService';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
-import HeaderSection from '../HeaderSection'; // Certifique-se de que o caminho está correto
+import HeaderSection from '../common/HeaderSection'; // Certifique-se de que o caminho está correto
 
 const { Option } = Select;
 

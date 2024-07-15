@@ -4,7 +4,7 @@ import { PlusOutlined } from '@ant-design/icons';
 import { fetchComarcas, saveComarca, deleteComarca } from '../../services/comarcaService'; // Caminho ajustado
 import ComarcaModal from './ComarcaModal';
 import getTableColumnsComarca from './getTableColumnsComarca';
-import HeaderSection from '../HeaderSection';
+import HeaderSection from '../common/HeaderSection';
 
 const CadastroComarca = () => {
     const [comarcaList, setComarcaList] = useState([]);

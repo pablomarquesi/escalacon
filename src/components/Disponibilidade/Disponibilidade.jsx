@@ -3,13 +3,11 @@ import { Table, Form, Button, message, Space, Tooltip } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import moment from 'moment';
 import 'moment/locale/pt-br';
-
 import { fetchDisponibilidades, saveDisponibilidade, deleteDisponibilidade } from '../../services/disponibilidadeService';
 import { fetchConciliadores } from '../../services/conciliadorService';
 import { fetchStatus } from '../../services/statusService'; // Certifique-se de que este caminho está correto
-import SearchBar from '../SearchBar'; // Certifique-se de que o caminho está correto
 import DisponibilidadeModal from './DisponibilidadeModal'; // Importando o componente modularizado
-import HeaderSection from '../HeaderSection'; // Importe o HeaderSection
+import HeaderSection from '../common/HeaderSection';
 
 moment.locale('pt-br');
 

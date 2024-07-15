@@ -1,6 +1,6 @@
 import React from 'react';
 import { Row, Col } from 'antd';
-import SearchBar from './SearchBar'; // Certifique-se de que o caminho está correto
+import SearchBar from './SearchBar';
 
 const HeaderSection = ({ title, onSearch, searchText, children }) => {
     return (

@@ -1,6 +1,6 @@
 import React from 'react';
-import { Button, Popconfirm } from 'antd';
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Button, Popconfirm, Switch } from 'antd';
+import { EditOutlined } from '@ant-design/icons';
 import moment from 'moment';
 
 const formatCPF = cpf => {
@@ -11,7 +11,7 @@ const formatPhone = phone => {
   return phone ? phone.replace(/(\d{2})(\d{4,5})(\d{4})/, '($1) $2-$3') : '';
 };
 
-const getTableColumns = (onEdit, onDelete) => [
+const getTableColumns = (onEdit, onToggleStatus) => [
   {
     title: 'Matrícula',
     dataIndex: 'matricula',
@@ -68,17 +68,23 @@ const getTableColumns = (onEdit, onDelete) => [
           type="default"
           style={{ marginRight: 8 }}
         />
-        <Popconfirm
-          title="Tem certeza que deseja excluir este conciliador?"
-          onConfirm={() => onDelete(record.conciliador_id)}
-          okText="Sim"
-          cancelText="Não"
-        >
-          <Button
-            icon={<DeleteOutlined />}
-            type="default"
+        {record.status_conciliador === 'Ativo' ? (
+          <Popconfirm
+            title="Tem certeza que deseja inativar este conciliador?"
+            onConfirm={() => onToggleStatus(record.conciliador_id, record.status_conciliador)}
+            okText="Sim"
+            cancelText="Não"
+          >
+            <Switch
+              checked={record.status_conciliador === 'Ativo'}
+            />
+          </Popconfirm>
+        ) : (
+          <Switch
+            checked={record.status_conciliador === 'Ativo'}
+            onChange={() => onToggleStatus(record.conciliador_id, record.status_conciliador)}
           />
-        </Popconfirm>
+        )}
       </span>
     ),
   },

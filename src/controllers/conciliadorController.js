@@ -14,7 +14,7 @@ export async function fetchConciliadores(req, res) {
     try {
         const [conciliadores] = await db.query(`
             SELECT conc.conciliador_id, conc.comarca_id, conc.matricula, conc.nome_conciliador, 
-                   conc.cpf, conc.telefone, conc.email, conc.data_credenciamento, 
+                   conc.cpf, conc.telefone, conc.email, conc.data_credenciamento, conc.status_conciliador,
                    com.nome_comarca 
             FROM conciliador AS conc 
             INNER JOIN comarca AS com 
@@ -42,8 +42,8 @@ export async function addConciliador(req, res) {
     const { matricula, nome_conciliador, cpf, telefone, email, comarca_id, data_credenciamento } = req.body;
     try {
         const result = await db.query(`
-            INSERT INTO conciliador (matricula, nome_conciliador, cpf, telefone, email, comarca_id, data_credenciamento)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO conciliador (matricula, nome_conciliador, cpf, telefone, email, comarca_id, data_credenciamento, status_conciliador)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'Ativo')
         `, [matricula, nome_conciliador, cpf, telefone, email, comarca_id, data_credenciamento]);
 
         if (result[0].affectedRows > 0) {
@@ -75,6 +75,27 @@ export async function updateConciliador(req, res) {
     } catch (error) {
         console.error('Erro ao atualizar conciliador:', error);
         res.status(500).json({ error: 'Erro no servidor ao atualizar conciliador' });
+    }
+}
+
+export async function toggleConciliadorStatus(req, res) {
+    const { id } = req.params;
+    const { status_conciliador } = req.body;
+    try {
+        const result = await db.query(`
+            UPDATE conciliador 
+            SET status_conciliador = ?
+            WHERE conciliador_id = ?
+        `, [status_conciliador, id]);
+
+        if (result[0].affectedRows > 0) {
+            res.status(200).json({ message: `Conciliador ${status_conciliador === 'Ativo' ? 'ativado' : 'inativado'} com sucesso.` });
+        } else {
+            res.status(400).json({ message: "Não foi possível alterar o status do conciliador." });
+        }
+    } catch (error) {
+        console.error('Erro ao alterar status do conciliador:', error);
+        res.status(500).json({ error: 'Erro no servidor ao alterar status do conciliador' });
     }
 }
 
