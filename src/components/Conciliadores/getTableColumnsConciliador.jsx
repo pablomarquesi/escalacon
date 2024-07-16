@@ -1,4 +1,3 @@
-// getTableColumnsConciliador.jsx
 import React from 'react';
 import { Button, Popconfirm, Switch } from 'antd';
 import { EditOutlined } from '@ant-design/icons';

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout, Button } from 'antd';
 import { MenuUnfoldOutlined, MenuFoldOutlined } from '@ant-design/icons';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import MenuList from './components/MenuList';
 import CadastroConciliador from './components/Conciliadores/CadastroConciliador';
 import CadastroStatus from './components/Status/CadastroStatus';
@@ -11,43 +11,71 @@ import Disponibilidade from "./components/Disponibilidade/Disponibilidade";
 import Dashboard from './components/Dashboard';
 import Juizado from "./components/Juizado/Juizado";
 import SalaVirtual from "./components/SalaVirtual/SalaVirtual";
+import UserMenu from './components/UserMenu/UserMenu';
+import Login from './components/Login/Login';
+import logo from './assets/logo.png'; // Adicione o caminho para sua logomarca
 
-const { Header, Sider, Content } = Layout;
+const { Header, Sider, Content, Footer } = Layout;
 
 function App() {
   const [collapsed, setCollapsed] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Verificar autenticação no localStorage
+  useEffect(() => {
+    const authStatus = localStorage.getItem('isAuthenticated');
+    setIsAuthenticated(authStatus === 'true');
+  }, []);
+
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+    localStorage.setItem('isAuthenticated', 'true');
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem('isAuthenticated');
+  };
 
   return (
     <Router>
       <Layout>
-        <Sider
-          collapsed={collapsed}
-          collapsible
-          trigger={null}
-          theme='dark'
-          className='sidebar'>
-          
-          <MenuList collapsed={collapsed} />
-        </Sider>
+        {isAuthenticated && (
+          <Sider
+            collapsed={collapsed}
+            collapsible
+            trigger={null}
+            className='sidebar'>
+            <div className="logo-container">
+              <img src={logo} alt="Logo" className="logo" />
+            </div>
+            <MenuList collapsed={collapsed} />
+          </Sider>
+        )}
         <Layout className="site-layout">
-          <Header style={{ padding: 0 }} className='header'>
-            <Button
-              type="text"
-              className="toggle"
-              onClick={() => setCollapsed(!collapsed)}
-              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />} />
-          </Header>
+          {isAuthenticated && (
+            <Header style={{ padding: 0 }} className='header'>
+              <Button
+                type="text"
+                className="toggle"
+                onClick={() => setCollapsed(!collapsed)}
+                icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />} />
+              <UserMenu onLogout={handleLogout} /> {/* Passa a função handleLogout */}
+            </Header>
+          )}
           <Content style={{ margin: '24px 16px', padding: 24, minHeight: 280 }}>
             <Routes>
-              <Route path="/" element={<Dashboard />} /> {/* Definindo o dashboard como a página inicial */}
-              <Route path="/escala" element={<CalendarioConciliadores />} />
-              <Route path="/cadastro/conciliador" element={<CadastroConciliador />} />
-              <Route path="/cadastro/disponibilidade" element={<Disponibilidade />} />  {/* Adicionando a rota para Disponibilidade */}
-              <Route path="/cadastro/status" element={<CadastroStatus />} />
-              <Route path="/locais/comarca" element={<CadastroComarca />} />
-              <Route path="/locais/juizado" element={<Juizado />} /> {/* Atualizando a rota para Juizado */}
-              <Route path="/locais/salavirtual" element={<SalaVirtual />} /> {/* Atualizando a rota para Sala Virtual */}
-              <Route path="/configuracoes/usuarios" element={<div>Usuários</div>} />
+              <Route path="/login" element={<Login onLogin={handleLogin} />} /> {/* Passando prop para autenticar */}
+              <Route path="/" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />} /> {/* Redirecionando para login ou dashboard */}
+              <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} /> {/* Redirecionando para login se não autenticado */}
+              <Route path="/escala" element={isAuthenticated ? <CalendarioConciliadores /> : <Navigate to="/login" />} />
+              <Route path="/cadastro/conciliador" element={isAuthenticated ? <CadastroConciliador /> : <Navigate to="/login" />} />
+              <Route path="/cadastro/disponibilidade" element={isAuthenticated ? <Disponibilidade /> : <Navigate to="/login" />} />
+              <Route path="/cadastro/status" element={isAuthenticated ? <CadastroStatus /> : <Navigate to="/login" />} />
+              <Route path="/locais/comarca" element={isAuthenticated ? <CadastroComarca /> : <Navigate to="/login" />} />
+              <Route path="/locais/juizado" element={isAuthenticated ? <Juizado /> : <Navigate to="/login" />} />
+              <Route path="/locais/salavirtual" element={isAuthenticated ? <SalaVirtual /> : <Navigate to="/login" />} />
+              <Route path="/configuracoes/usuarios" element={isAuthenticated ? <div>Usuários</div> : <Navigate to="/login" />} />
             </Routes>
           </Content>
         </Layout>
