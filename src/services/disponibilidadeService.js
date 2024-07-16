@@ -14,17 +14,17 @@ export const fetchDisponibilidades = async () => {
 
 export const saveDisponibilidade = async (disponibilidade) => {
     try {
-        const response = await axios.post(`${API_URL}/disponibilidades`, { disponibilidades: disponibilidade });
+        const response = await axios.post(`${API_URL}/disponibilidades`, { ...disponibilidade });
         return response.data;
     } catch (error) {
         console.error('Erro ao salvar disponibilidade:', error);
-        throw error;
+        throw error.response ? error.response.data : error;
     }
 };
 
-export const deleteDisponibilidade = async (conciliador_id, mes, ano, dia_da_semana) => {
+export const deleteDisponibilidade = async (id) => {
     try {
-        const response = await axios.delete(`${API_URL}/disponibilidades/${conciliador_id}/${mes}/${ano}/${dia_da_semana}`);
+        const response = await axios.delete(`${API_URL}/disponibilidades/${id}`);
         return response.data;
     } catch (error) {
         console.error('Erro ao excluir disponibilidade:', error);

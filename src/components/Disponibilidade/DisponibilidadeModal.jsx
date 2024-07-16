@@ -5,14 +5,29 @@ import moment from 'moment';
 const { Option } = Select;
 const { MonthPicker } = DatePicker;
 
+// Função para calcular dias úteis em um determinado mês e ano
+const getBusinessDays = (year, month) => {
+    let date = moment([year, month - 1]);
+    let businessDays = 0;
+    while (date.month() === month - 1) {
+        if (date.day() !== 0 && date.day() !== 6) { // Exclui domingos (0) e sábados (6)
+            businessDays++;
+        }
+        date.add(1, 'day');
+    }
+    return businessDays;
+};
+
 const DisponibilidadeModal = ({ form, isModalVisible, onFinish, onCancel, filteredConciliadores, handleConciliadorSearch, editingDisponibilidade, disabledDate, statuses }) => {
     const [selectedDays, setSelectedDays] = useState([]);
     const [monthYear, setMonthYear] = useState({ year: null, month: null });
+    const [businessDays, setBusinessDays] = useState([]);
 
     useEffect(() => {
         const { year, month } = monthYear;
         if (year && month) {
-            setSelectedDays([]);
+            const days = getBusinessDays(year, month);
+            setBusinessDays(days);
         }
     }, [monthYear]);
 
@@ -27,6 +42,7 @@ const DisponibilidadeModal = ({ form, isModalVisible, onFinish, onCancel, filter
             setMonthYear({ year: date.year(), month: date.month() + 1 });
         } else {
             setMonthYear({ year: null, month: null });
+            setBusinessDays([]);
         }
     };
 
@@ -80,16 +96,29 @@ const DisponibilidadeModal = ({ form, isModalVisible, onFinish, onCancel, filter
                     <MonthPicker placeholder="Selecione o mês" format="MMMM" disabledDate={disabledDate} picker="month" onChange={handleMonthChange} />
                 </Form.Item>
                 <Form.Item
+                    name="quantidade_dias"
+                    label="Quantidade de Dias"
+                    rules={[{ required: true, message: 'Informe a quantidade de dias disponíveis' }]}
+                >
+                    <Select placeholder="Quantidade de Dias">
+                        {Array.from({ length: businessDays }, (_, i) => (
+                            <Option key={i + 1} value={i + 1}>
+                                {i + 1}
+                            </Option>
+                        ))}
+                    </Select>
+                </Form.Item>
+                <Form.Item
                     name="dias_da_semana"
                     label="Dias da Semana"
                     rules={[{ required: true, message: 'Selecione ao menos um dia da semana' }]}
                 >
                     <Checkbox.Group onChange={handleDaysChange}>
-                        <Checkbox value="Monday">Segundas</Checkbox>
-                        <Checkbox value="Tuesday">Terças</Checkbox>
-                        <Checkbox value="Wednesday">Quartas</Checkbox>
-                        <Checkbox value="Thursday">Quintas</Checkbox>
-                        <Checkbox value="Friday">Sextas</Checkbox>
+                        <Checkbox value="Segunda">Segundas</Checkbox>
+                        <Checkbox value="Terça">Terças</Checkbox>
+                        <Checkbox value="Quarta">Quartas</Checkbox>
+                        <Checkbox value="Quinta">Quintas</Checkbox>
+                        <Checkbox value="Sexta">Sextas</Checkbox>
                     </Checkbox.Group>
                 </Form.Item>
                 <Form.Item

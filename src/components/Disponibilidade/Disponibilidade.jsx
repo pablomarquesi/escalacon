@@ -15,6 +15,7 @@ moment.locale('pt-br');
 const Disponibilidade = () => {
     const [form] = Form.useForm();
     const [disponibilidades, setDisponibilidades] = useState([]);
+    const [filteredDisponibilidades, setFilteredDisponibilidades] = useState([]);
     const [conciliadores, setConciliadores] = useState([]);
     const [statuses, setStatuses] = useState([]);
     const [filteredConciliadores, setFilteredConciliadores] = useState([]);
@@ -33,6 +34,7 @@ const Disponibilidade = () => {
         try {
             const data = await fetchDisponibilidades();
             setDisponibilidades(data);
+            setFilteredDisponibilidades(data); // Inicialmente, todos os dados são exibidos
         } catch (error) {
             message.error('Erro ao carregar disponibilidades');
         }
@@ -59,36 +61,20 @@ const Disponibilidade = () => {
 
     const handleFinish = async (values) => {
         try {
-            const diasSelecionados = values.dias_da_semana || [];
-            const disponibilidadesData = diasSelecionados.map(dia => ({
+            const disponibilidadeData = {
                 conciliador_id: values.conciliador_id,
-                dia_da_semana: dia,
-                mes: `${values.ano}-${values.mes.format('MM')}`,
                 ano: values.ano,
+                mes: values.mes.format('YYYY-MM'),
+                quantidade_dias: values.quantidade_dias,
+                dias_da_semana: values.dias_da_semana,
                 status_id: values.status_id
-            }));
+            };
 
             if (editingDisponibilidade) {
-                const diasExistentes = editingDisponibilidade.dia_da_semana.split(',').map(dia => dia.trim());
-                const diasParaRemover = diasExistentes.filter(dia => !diasSelecionados.includes(dia));
-                const diasParaAdicionar = diasSelecionados.filter(dia => !diasExistentes.includes(dia));
-
-                for (const dia of diasParaRemover) {
-                    await deleteDisponibilidade(values.conciliador_id, `${values.ano}-${values.mes.format('MM')}`, values.ano, dia);
-                }
-
-                for (const dia of diasParaAdicionar) {
-                    await saveDisponibilidade([{ 
-                        conciliador_id: values.conciliador_id, 
-                        dia_da_semana: dia, 
-                        mes: `${values.ano}-${values.mes.format('MM')}`,
-                        ano: values.ano,
-                        status_id: values.status_id
-                    }]);
-                }
-            } else {
-                await saveDisponibilidade(disponibilidadesData);
+                await deleteDisponibilidade(editingDisponibilidade.id);
             }
+
+            await saveDisponibilidade(disponibilidadeData);
 
             form.resetFields();
             setEditingDisponibilidade(null);
@@ -96,28 +82,27 @@ const Disponibilidade = () => {
             setIsModalVisible(false);
             message.success('Disponibilidade salva com sucesso');
         } catch (error) {
-            console.error('Erro ao salvar disponibilidade:', error);
-            message.error('Erro ao salvar disponibilidade');
+            message.error(error.message || 'Erro ao salvar disponibilidade');
         }
     };
 
     const handleEdit = (record) => {
         setEditingDisponibilidade(record);
-        const dias_da_semana = record.dia_da_semana.split(',').map(dia => dia.trim());
         const fieldsValue = {
             conciliador_id: record.conciliador_id,
-            dias_da_semana,
-            mes: moment(record.mes, 'YYYY-MM'),
             ano: record.ano,
+            mes: moment(record.mes, 'YYYY-MM'),
+            quantidade_dias: record.quantidade_dias,
+            dias_da_semana: record.dia_da_semana.split(',').map(dia => dia.trim()),
             status_id: record.status_id
         };
         form.setFieldsValue(fieldsValue);
         setIsModalVisible(true);
     };
 
-    const handleDelete = async (conciliador_id, mes, ano) => {
+    const handleDelete = async (id) => {
         try {
-            await deleteDisponibilidade(conciliador_id, mes, ano);
+            await deleteDisponibilidade(id);
             loadDisponibilidades();
             message.success('Disponibilidade excluída com sucesso');
         } catch (error) {
@@ -133,7 +118,13 @@ const Disponibilidade = () => {
     };
 
     const handleSearch = (e) => {
-        setSearchText(e.target.value.toLowerCase());
+        const value = e.target.value.toLowerCase();
+        setSearchText(value);
+
+        const filtered = disponibilidades.filter(disponibilidade =>
+            disponibilidade.nome_conciliador.toLowerCase().includes(value)
+        );
+        setFilteredDisponibilidades(filtered);
     };
 
     const handleConciliadorSearch = (value) => {
@@ -147,9 +138,17 @@ const Disponibilidade = () => {
         return current && current < moment().startOf('month');
     };
 
-    const filteredDisponibilidades = disponibilidades.filter(disponibilidade => 
-        disponibilidade.nome_conciliador.toLowerCase().includes(searchText)
-    );
+    const groupByConciliadorMes = filteredDisponibilidades.reduce((acc, curr) => {
+        const key = `${curr.nome_conciliador}-${curr.ano}-${curr.mes}`;
+        if (!acc[key]) {
+            acc[key] = { ...curr, dias_da_semana: [curr.dia_da_semana] };
+        } else {
+            acc[key].dias_da_semana.push(curr.dia_da_semana);
+        }
+        return acc;
+    }, {});
+
+    const groupedDisponibilidades = Object.values(groupByConciliadorMes);
 
     const columns = [
         {
@@ -162,20 +161,26 @@ const Disponibilidade = () => {
             title: 'Ano',
             dataIndex: 'ano',
             key: 'ano',
-            align: 'left',
+            align: 'center', // Centralizar dados
         },
         {
             title: 'Mês',
             dataIndex: 'mes',
             key: 'mes',
             render: (text) => moment(text, 'YYYY-MM').format('MMMM'),
-            align: 'left',
+            align: 'center', // Centralizar dados
+        },
+        {
+            title: 'Qtd de dias disponíveis', // Alterar a label da coluna
+            dataIndex: 'quantidade_dias',
+            key: 'quantidade_dias',
+            align: 'center', // Centralizar dados
         },
         {
             title: 'Dias da Semana',
-            dataIndex: 'dia_da_semana',
-            key: 'dia_da_semana',
-            render: (text) => text ? text.split(',').join(', ') : '',
+            dataIndex: 'dias_da_semana',
+            key: 'dias_da_semana',
+            render: (dias) => dias.join(', '),
             align: 'left',
         },
         {
@@ -184,10 +189,9 @@ const Disponibilidade = () => {
             key: 'status',
             align: 'left',
             render: (text, record) => {
-                const status = statuses.find(s => s.nome_status === record.nome_status);
                 return (
-                    <Tooltip title={status ? status.descricao : 'Sem descrição'}>
-                        <span>{text}</span>
+                    <Tooltip title={record.descricao_status || 'Sem descrição'}>
+                        <span>{record.nome_status || 'Sem status'}</span>
                     </Tooltip>
                 );
             },
@@ -206,7 +210,7 @@ const Disponibilidade = () => {
                     <Button
                         type="danger"
                         icon={<DeleteOutlined />}
-                        onClick={() => handleDelete(record.conciliador_id, record.mes, record.ano)}
+                        onClick={() => handleDelete(record.id)}
                     />
                 </Space>
             ),
@@ -226,7 +230,7 @@ const Disponibilidade = () => {
             </HeaderSection>
             <CustomTable 
                 columns={columns} 
-                dataSource={filteredDisponibilidades} 
+                dataSource={groupedDisponibilidades} 
                 rowKey="id" 
                 pagination={{ pageSize, onChange: (page, size) => setPageSize(size), showSizeChanger: true, pageSizeOptions: ['10', '20', '30', '40'] }}
             />
