@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Form, Select, Checkbox, Button, Space, DatePicker } from 'antd';
 import moment from 'moment';
 
@@ -6,6 +6,30 @@ const { Option } = Select;
 const { MonthPicker } = DatePicker;
 
 const DisponibilidadeModal = ({ form, isModalVisible, onFinish, onCancel, filteredConciliadores, handleConciliadorSearch, editingDisponibilidade, disabledDate, statuses }) => {
+    const [selectedDays, setSelectedDays] = useState([]);
+    const [monthYear, setMonthYear] = useState({ year: null, month: null });
+
+    useEffect(() => {
+        const { year, month } = monthYear;
+        if (year && month) {
+            setSelectedDays([]);
+        }
+    }, [monthYear]);
+
+    const handleDaysChange = (checkedValues) => {
+        setSelectedDays(checkedValues);
+        const currentValues = form.getFieldsValue();
+        form.setFieldsValue(currentValues);
+    };
+
+    const handleMonthChange = (date) => {
+        if (date) {
+            setMonthYear({ year: date.year(), month: date.month() + 1 });
+        } else {
+            setMonthYear({ year: null, month: null });
+        }
+    };
+
     return (
         <Modal
             title={editingDisponibilidade ? 'Editar Disponibilidade' : 'Adicionar Disponibilidade'}
@@ -53,19 +77,19 @@ const DisponibilidadeModal = ({ form, isModalVisible, onFinish, onCancel, filter
                     label="Mês"
                     rules={[{ required: true, message: 'Selecione o mês' }]}
                 >
-                    <MonthPicker placeholder="Selecione o mês" format="MMMM" disabledDate={disabledDate} picker="month" />
+                    <MonthPicker placeholder="Selecione o mês" format="MMMM" disabledDate={disabledDate} picker="month" onChange={handleMonthChange} />
                 </Form.Item>
                 <Form.Item
                     name="dias_da_semana"
                     label="Dias da Semana"
                     rules={[{ required: true, message: 'Selecione ao menos um dia da semana' }]}
                 >
-                    <Checkbox.Group>
-                        <Checkbox value="Segunda">Segundas</Checkbox>
-                        <Checkbox value="Terça">Terças</Checkbox>
-                        <Checkbox value="Quarta">Quartas</Checkbox>
-                        <Checkbox value="Quinta">Quintas</Checkbox>
-                        <Checkbox value="Sexta">Sextas</Checkbox>
+                    <Checkbox.Group onChange={handleDaysChange}>
+                        <Checkbox value="Monday">Segundas</Checkbox>
+                        <Checkbox value="Tuesday">Terças</Checkbox>
+                        <Checkbox value="Wednesday">Quartas</Checkbox>
+                        <Checkbox value="Thursday">Quintas</Checkbox>
+                        <Checkbox value="Friday">Sextas</Checkbox>
                     </Checkbox.Group>
                 </Form.Item>
                 <Form.Item

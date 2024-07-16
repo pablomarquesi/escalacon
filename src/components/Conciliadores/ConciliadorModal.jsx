@@ -14,7 +14,7 @@ const ConciliadorModal = ({ isVisible, onCancel, onSubmit, municipios, form, res
     };
 
     return (
-        <Modal title="Cadastro de Conciliador" visible={isVisible} onCancel={onCancel} footer={null}>
+        <Modal title="Cadastro de Conciliador" visible={isVisible} onCancel={() => { resetForm(); onCancel(); }} footer={null}>
             <Form form={form} layout="vertical" onFinish={onSubmit}>
                 <Form.Item name="matricula" label="Matrícula" rules={[{ required: true, message: 'Insira a matrícula!' }]}>
                     <Input onChange={handleNumberInput} value={form.getFieldValue('matricula')} />
@@ -51,7 +51,7 @@ const ConciliadorModal = ({ isVisible, onCancel, onSubmit, municipios, form, res
                     <Button type="primary" htmlType="submit" style={{ marginRight: 8 }}>
                         Salvar
                     </Button>
-                    <Button htmlType="button" onClick={resetForm}>
+                    <Button htmlType="button" onClick={() => { form.resetFields(); resetForm(); }}>
                         Limpar
                     </Button>
                 </Form.Item>

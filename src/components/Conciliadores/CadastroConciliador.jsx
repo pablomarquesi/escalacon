@@ -1,14 +1,13 @@
-// CadastroConciliador.jsx
 import { PlusOutlined } from '@ant-design/icons';
 import { Button, Form, message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import getTableColumns from "./getTableColumnsConciliador";
 import { fetchConciliadores, fetchMunicipios, toggleConciliadorStatus, saveConciliador } from "../../services/conciliadorService";
-import ConciliadorModal from '../ConciliadorModal';
+import ConciliadorModal from './ConciliadorModal';
 import moment from 'moment';
 import HeaderSection from '../common/HeaderSection';
 import CustomTable from '../common/CustomTable';
-import SearchBar from '../common/SearchBar';
+
 
 const CadastroConciliador = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);

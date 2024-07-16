@@ -78,8 +78,6 @@ const getTableColumns = (onEdit, onToggleStatus) => [
         >
           <Switch
             checked={record.status_conciliador === 'Ativo'}
-            checkedChildren="Ativo"
-            unCheckedChildren="Inativo"
           />
         </Popconfirm>
       </span>

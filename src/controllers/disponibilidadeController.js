@@ -1,22 +1,12 @@
 import db from '../config/database.js';
 
-export async function testDbConnection(req, res) {
-    try {
-        const [rows] = await db.query('SELECT 1 + 1 AS solution');
-        res.json({ mysql: 'connected', solution: rows[0].solution });
-    } catch (err) {
-        res.status(500).json({ error: 'Erro ao conectar ao MySQL' });
-    }
-}
-
 export async function fetchDisponibilidades(req, res) {
     try {
         const [disponibilidades] = await db.query(`
-            SELECT cd.conciliador_id, c.nome_conciliador, cd.mes, cd.ano, GROUP_CONCAT(cd.dia_da_semana ORDER BY cd.dia_da_semana ASC) AS dias_da_semana, cd.status_id, s.nome_status
+            SELECT cd.conciliador_id, c.nome_conciliador, cd.mes, cd.ano, cd.dia_da_semana, cd.status_id, s.nome_status
             FROM conciliador_disponibilidade AS cd
             INNER JOIN conciliador AS c ON cd.conciliador_id = c.conciliador_id
             INNER JOIN status AS s ON cd.status_id = s.status_id
-            GROUP BY cd.conciliador_id, cd.mes, cd.ano, c.nome_conciliador, cd.status_id, s.nome_status
             ORDER BY c.nome_conciliador ASC, cd.mes ASC, cd.ano ASC;
         `);
         res.json(disponibilidades);
@@ -36,6 +26,7 @@ export async function addDisponibilidade(req, res) {
         }
         res.status(201).json({ message: "Disponibilidades adicionadas com sucesso." });
     } catch (error) {
+        console.error('Erro no servidor ao adicionar disponibilidades:', error);
         res.status(500).json({ error: 'Erro no servidor ao adicionar disponibilidades' });
     }
 }

@@ -12,26 +12,22 @@ export const fetchDisponibilidades = async () => {
     }
 };
 
-export const saveDisponibilidade = async (disponibilidades) => {
+export const saveDisponibilidade = async (disponibilidade) => {
     try {
-        const response = await axios.post(`${API_URL}/disponibilidades`, { disponibilidades });
+        const response = await axios.post(`${API_URL}/disponibilidades`, { disponibilidades: disponibilidade });
         return response.data;
     } catch (error) {
-        console.error('Erro ao salvar disponibilidades:', error);
+        console.error('Erro ao salvar disponibilidade:', error);
         throw error;
     }
 };
 
-export const deleteDisponibilidade = async (conciliador_id, mes, ano, dia_da_semana = null) => {
+export const deleteDisponibilidade = async (conciliador_id, mes, ano, dia_da_semana) => {
     try {
-        let url = `${API_URL}/disponibilidades/${conciliador_id}/${mes}/${ano}`;
-        if (dia_da_semana) {
-            url += `/${dia_da_semana}`;
-        }
-        const response = await axios.delete(url);
+        const response = await axios.delete(`${API_URL}/disponibilidades/${conciliador_id}/${mes}/${ano}/${dia_da_semana}`);
         return response.data;
     } catch (error) {
-        console.error('Erro ao excluir disponibilidades:', error);
+        console.error('Erro ao excluir disponibilidade:', error);
         throw error;
     }
 };

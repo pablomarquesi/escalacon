@@ -13,8 +13,9 @@ import {
     SettingOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import Logo from './Logo'; 
 
-const MenuList = () => {
+const MenuList = ({ collapsed }) => {
     const navigate = useNavigate();
 
     const handleMenuClick = (e) => {
@@ -121,13 +122,16 @@ const MenuList = () => {
     ];
 
     return (
-        <Menu
-            theme="dark"
-            mode='inline'
-            className='menu-bar'
-            onClick={handleMenuClick}
-            items={items}
-        />
+        <div>
+            <Logo collapsed={collapsed} />
+            <Menu
+                theme="dark"
+                mode='inline'
+                className='menu-bar'
+                onClick={handleMenuClick}
+                items={items}
+            />
+        </div>
     );
 };
 

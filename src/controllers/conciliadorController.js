@@ -80,16 +80,16 @@ export async function updateConciliador(req, res) {
 
 export async function toggleConciliadorStatus(req, res) {
     const { id } = req.params;
-    const { status_conciliador } = req.body;
+    const { status } = req.body;
     try {
         const result = await db.query(`
             UPDATE conciliador 
             SET status_conciliador = ?
             WHERE conciliador_id = ?
-        `, [status_conciliador, id]);
+        `, [status, id]);
 
         if (result[0].affectedRows > 0) {
-            res.status(200).json({ message: `Conciliador ${status_conciliador === 'Ativo' ? 'ativado' : 'inativado'} com sucesso.` });
+            res.status(200).json({ message: `Conciliador ${status === 'Ativo' ? 'ativado' : 'inativado'} com sucesso.` });
         } else {
             res.status(400).json({ message: "Não foi possível alterar o status do conciliador." });
         }

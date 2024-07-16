@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Form, Button, message, Space, Tooltip } from 'antd';
+import { Form, Button, message, Space, Tooltip } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import moment from 'moment';
 import 'moment/locale/pt-br';
 import { fetchDisponibilidades, saveDisponibilidade, deleteDisponibilidade } from '../../services/disponibilidadeService';
 import { fetchConciliadores } from '../../services/conciliadorService';
-import { fetchStatus } from '../../services/statusService'; // Certifique-se de que este caminho está correto
-import DisponibilidadeModal from './DisponibilidadeModal'; // Importando o componente modularizado
+import { fetchStatus } from '../../services/statusService';
+import DisponibilidadeModal from './DisponibilidadeModal';
 import HeaderSection from '../common/HeaderSection';
+import CustomTable from '../common/CustomTable';
 
 moment.locale('pt-br');
 
@@ -68,7 +69,7 @@ const Disponibilidade = () => {
             }));
 
             if (editingDisponibilidade) {
-                const diasExistentes = editingDisponibilidade.dias_da_semana.split(',').map(dia => dia.trim());
+                const diasExistentes = editingDisponibilidade.dia_da_semana.split(',').map(dia => dia.trim());
                 const diasParaRemover = diasExistentes.filter(dia => !diasSelecionados.includes(dia));
                 const diasParaAdicionar = diasSelecionados.filter(dia => !diasExistentes.includes(dia));
 
@@ -95,30 +96,32 @@ const Disponibilidade = () => {
             setIsModalVisible(false);
             message.success('Disponibilidade salva com sucesso');
         } catch (error) {
+            console.error('Erro ao salvar disponibilidade:', error);
             message.error('Erro ao salvar disponibilidade');
         }
     };
 
     const handleEdit = (record) => {
         setEditingDisponibilidade(record);
-        const dias_da_semana = record.dias_da_semana.split(',').map(dia => dia.trim());
-        form.setFieldsValue({ 
+        const dias_da_semana = record.dia_da_semana.split(',').map(dia => dia.trim());
+        const fieldsValue = {
             conciliador_id: record.conciliador_id,
             dias_da_semana,
             mes: moment(record.mes, 'YYYY-MM'),
             ano: record.ano,
             status_id: record.status_id
-        });
+        };
+        form.setFieldsValue(fieldsValue);
         setIsModalVisible(true);
     };
 
     const handleDelete = async (conciliador_id, mes, ano) => {
         try {
-            const formattedMes = moment(mes).format('YYYY-MM');
-            await deleteDisponibilidade(conciliador_id, formattedMes, ano);
+            await deleteDisponibilidade(conciliador_id, mes, ano);
             loadDisponibilidades();
             message.success('Disponibilidade excluída com sucesso');
         } catch (error) {
+            console.error('Erro ao excluir disponibilidade:', error);
             message.error('Erro ao excluir disponibilidade');
         }
     };
@@ -170,9 +173,9 @@ const Disponibilidade = () => {
         },
         {
             title: 'Dias da Semana',
-            dataIndex: 'dias_da_semana',
-            key: 'dias_da_semana',
-            render: (text) => text.split(',').join(', '),
+            dataIndex: 'dia_da_semana',
+            key: 'dia_da_semana',
+            render: (text) => text ? text.split(',').join(', ') : '',
             align: 'left',
         },
         {
@@ -221,10 +224,10 @@ const Disponibilidade = () => {
                     Adicionar disponibilidade
                 </Button>
             </HeaderSection>
-            <Table 
+            <CustomTable 
                 columns={columns} 
                 dataSource={filteredDisponibilidades} 
-                rowKey="conciliador_id" 
+                rowKey="id" 
                 pagination={{ pageSize, onChange: (page, size) => setPageSize(size), showSizeChanger: true, pageSizeOptions: ['10', '20', '30', '40'] }}
             />
             <DisponibilidadeModal 

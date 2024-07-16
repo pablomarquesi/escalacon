@@ -27,12 +27,12 @@ export const saveConciliador = async (conciliador) => {
     }
 };
 
-export const toggleConciliadorStatus = async (id, status) => {
+export const deleteConciliadorService = async (id) => {
     try {
-        const response = await axios.patch(`${API_URL}/conciliadores/${id}`, { status_conciliador: status });
+        const response = await axios.delete(`${API_URL}/conciliadores/${id}`);
         return response.data;
     } catch (error) {
-        console.error('Erro ao alterar status do conciliador:', error);
+        console.error('Erro ao excluir conciliador:', error);
         throw error;
     }
 };
@@ -43,6 +43,16 @@ export const fetchMunicipios = async () => {
         return response.data;
     } catch (error) {
         console.error('Erro ao buscar municípios:', error);
+        throw error;
+    }
+};
+
+export const toggleConciliadorStatus = async (id, status) => {
+    try {
+        const response = await axios.patch(`${API_URL}/conciliadores/${id}`, { status });
+        return response.data;
+    } catch (error) {
+        console.error('Erro ao alterar status do conciliador:', error);
         throw error;
     }
 };

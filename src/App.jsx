@@ -27,7 +27,7 @@ function App() {
           theme='dark'
           className='sidebar'>
           
-          <MenuList />
+          <MenuList collapsed={collapsed} />
         </Sider>
         <Layout className="site-layout">
           <Header style={{ padding: 0 }} className='header'>
