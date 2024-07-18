@@ -22,7 +22,7 @@ const getTableColumns = (onEdit, onToggleStatus) => [
     title: 'Nome',
     dataIndex: 'nome_conciliador',
     key: 'nome_conciliador',
-    className: 'name-column', // Adiciona a classe name-column
+    className: 'name-column',
     sorter: (a, b) => (a.nome_conciliador || "").toString().localeCompare((b.nome_conciliador || "").toString()),
   },
   {
@@ -59,7 +59,7 @@ const getTableColumns = (onEdit, onToggleStatus) => [
     sorter: (a, b) => moment(a.data_credenciamento).unix() - moment(b.data_credenciamento).unix(),
   },
   {
-    title: 'Ação',
+    title: 'Ações',
     key: 'acao',
     render: (_, record) => (
       <span>

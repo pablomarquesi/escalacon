@@ -31,3 +31,13 @@ export const deleteDisponibilidade = async (id) => {
         throw error;
     }
 };
+
+export const toggleDisponibilidadeStatus = async (id, status) => {
+    try {
+        const response = await axios.patch(`${API_URL}/disponibilidades/${id}`, { status });
+        return response.data;
+    } catch (error) {
+        console.error('Erro ao alterar status da disponibilidade:', error);
+        throw error.response ? error.response.data : error;
+    }
+};

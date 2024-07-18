@@ -3,7 +3,15 @@ import db from '../config/database.js';
 export async function fetchDisponibilidades(req, res) {
     try {
         const [disponibilidades] = await db.query(`
-            SELECT dc.id, c.nome_conciliador, dm.ano, dm.mes, dm.quantidade_dias, ds.dia_da_semana, s.nome_status, s.descricao_status
+            SELECT dc.id, 
+                c.nome_conciliador, 
+                dm.ano, 
+                dm.mes, 
+                dm.quantidade_dias, 
+                ds.dia_da_semana, 
+                s.nome_status, 
+                s.descricao_status,
+                dc.status_disponibilidade
             FROM disponibilidade_conciliador AS dc
             INNER JOIN conciliador AS c ON dc.conciliador_id = c.conciliador_id
             INNER JOIN disponibilidade_mes AS dm ON dc.disponibilidade_mes_id = dm.id
@@ -57,6 +65,27 @@ export async function addDisponibilidade(req, res) {
     } catch (error) {
         console.error('Erro no servidor ao adicionar disponibilidade:', error);
         res.status(500).json({ error: 'Erro no servidor ao adicionar disponibilidade' });
+    }
+}
+
+export async function toggleDisponibilidadeStatus(req, res) {
+    const { id } = req.params;
+    const { status } = req.body;
+    try {
+        const result = await db.query(`
+            UPDATE disponibilidade_conciliador 
+            SET status_disponibilidade = ?
+            WHERE id = ?
+        `, [status, id]);
+
+        if (result[0].affectedRows > 0) {
+            res.status(200).json({ message: `Disponibilidade do conciliador atualizada para ${status} com sucesso.` });
+        } else {
+            res.status(400).json({ message: "Não foi possível atualizar a disponibilidade do conciliador." });
+        }
+    } catch (error) {
+        console.error('Erro ao alterar status da disponibilidade do conciliador:', error);
+        res.status(500).json({ error: 'Erro no servidor ao alterar status da disponibilidade do conciliador' });
     }
 }
 

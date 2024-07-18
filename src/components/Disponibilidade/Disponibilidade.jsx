@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Form, Button, message, Space, Tooltip } from 'antd';
-import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { Form, Button, message, Space, Tooltip, Switch, Popconfirm } from 'antd';
+import { EditOutlined, PlusOutlined } from '@ant-design/icons';
 import moment from 'moment';
 import 'moment/locale/pt-br';
-import { fetchDisponibilidades, saveDisponibilidade, deleteDisponibilidade } from '../../services/disponibilidadeService';
+import { fetchDisponibilidades, saveDisponibilidade, toggleDisponibilidadeStatus } from '../../services/disponibilidadeService';
 import { fetchConciliadores } from '../../services/conciliadorService';
 import { fetchStatus } from '../../services/statusService';
 import DisponibilidadeModal from './DisponibilidadeModal';
@@ -34,7 +34,7 @@ const Disponibilidade = () => {
         try {
             const data = await fetchDisponibilidades();
             setDisponibilidades(data);
-            setFilteredDisponibilidades(data); // Inicialmente, todos os dados são exibidos
+            setFilteredDisponibilidades(data);
         } catch (error) {
             message.error('Erro ao carregar disponibilidades');
         }
@@ -100,14 +100,15 @@ const Disponibilidade = () => {
         setIsModalVisible(true);
     };
 
-    const handleDelete = async (id) => {
+    const handleToggleStatus = async (id, currentStatus) => {
+        const newStatus = currentStatus === 'Ativo' ? 'Inativo' : 'Ativo';
         try {
-            await deleteDisponibilidade(id);
+            await toggleDisponibilidadeStatus(id, newStatus);
+            message.success(`Disponibilidade ${newStatus === 'Ativo' ? 'ativada' : 'inativada'} com sucesso`);
             loadDisponibilidades();
-            message.success('Disponibilidade excluída com sucesso');
         } catch (error) {
-            console.error('Erro ao excluir disponibilidade:', error);
-            message.error('Erro ao excluir disponibilidade');
+            console.error('Erro ao alterar status da disponibilidade:', error);
+            message.error('Erro ao alterar status da disponibilidade. Tente novamente.');
         }
     };
 
@@ -156,25 +157,33 @@ const Disponibilidade = () => {
             dataIndex: 'nome_conciliador',
             key: 'nome_conciliador',
             align: 'left',
+            sorter: (a, b) => (a.nome_conciliador || "").toString().localeCompare((b.nome_conciliador || "").toString()),
         },
         {
             title: 'Ano',
             dataIndex: 'ano',
             key: 'ano',
-            align: 'center', // Centralizar dados
+            align: 'center',
+            sorter: (a, b) => (a.ano || "").toString().localeCompare((b.ano || "").toString()),
         },
         {
             title: 'Mês',
             dataIndex: 'mes',
             key: 'mes',
             render: (text) => moment(text, 'YYYY-MM').format('MMMM'),
-            align: 'center', // Centralizar dados
+            align: 'center',
+            sorter: (a, b) => {
+                const monthA = moment(a.mes, 'YYYY-MM').month();
+                const monthB = moment(b.mes, 'YYYY-MM').month();
+                return monthA - monthB;
+            },
         },
         {
-            title: 'Qtd de dias disponíveis', // Alterar a label da coluna
+            title: 'Qtd de dias disponíveis',
             dataIndex: 'quantidade_dias',
             key: 'quantidade_dias',
-            align: 'center', // Centralizar dados
+            align: 'center',
+            sorter: (a, b) => (a.quantidade_dias || "").toString().localeCompare((b.quantidade_dias || "").toString()),
         },
         {
             title: 'Dias da Semana',
@@ -187,7 +196,8 @@ const Disponibilidade = () => {
             title: 'Status',
             dataIndex: 'nome_status',
             key: 'status',
-            align: 'left',
+            align: 'center',
+            sorter: (a, b) => (a.nome_status || "").toString().localeCompare((b.nome_status || "").toString()),
             render: (text, record) => {
                 return (
                     <Tooltip title={record.descricao_status || 'Sem descrição'}>
@@ -199,19 +209,24 @@ const Disponibilidade = () => {
         {
             title: 'Ações',
             key: 'actions',
-            align: 'left',
+            align: 'center',
             render: (text, record) => (
                 <Space size="middle">
                     <Button
-                        type="primary"
+                        type="default"
                         icon={<EditOutlined />}
                         onClick={() => handleEdit(record)}
                     />
-                    <Button
-                        type="danger"
-                        icon={<DeleteOutlined />}
-                        onClick={() => handleDelete(record.id)}
-                    />
+                    <Popconfirm
+                        title={`Tem certeza que deseja ${record.status_disponibilidade === 'Ativo' ? 'inativar' : 'ativar'} esta disponibilidade?`}
+                        onConfirm={() => handleToggleStatus(record.id, record.status_disponibilidade)}
+                        okText="Sim"
+                        cancelText="Não"
+                    >
+                        <Switch
+                            checked={record.status_disponibilidade === 'Ativo'}
+                        />
+                    </Popconfirm>
                 </Space>
             ),
         },
@@ -220,12 +235,12 @@ const Disponibilidade = () => {
     return (
         <div>
             <HeaderSection
-                title="Gerenciar Disponibilidade"
+                title="Gerenciar Disponibilidades"
                 onSearch={handleSearch}
                 searchText={searchText}
             >
                 <Button type="primary" onClick={() => setIsModalVisible(true)} icon={<PlusOutlined />}>
-                    Adicionar disponibilidade
+                    Adicionar
                 </Button>
             </HeaderSection>
             <CustomTable 
@@ -243,7 +258,7 @@ const Disponibilidade = () => {
                 handleConciliadorSearch={handleConciliadorSearch}
                 editingDisponibilidade={editingDisponibilidade}
                 disabledDate={disabledDate}
-                statuses={statuses} // Passando os statuses para o modal
+                statuses={statuses}
             />
         </div>
     );
