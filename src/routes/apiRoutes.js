@@ -1,6 +1,6 @@
 import { addConciliador, deleteConciliadores, fetchConciliadores, testDbConnection, updateConciliador, toggleConciliadorStatus } from '../controllers/conciliadorController.js';
-import { fetchStatus, addStatus, updateStatus, deleteStatus } from '../controllers/statusController.js';
-import { addDisponibilidade, deleteDisponibilidade, fetchDisponibilidades, toggleDisponibilidadeStatus } from '../controllers/disponibilidadeController.js';
+import { fetchStatus, addStatus, updateStatus, deleteStatus, toggleStatus } from '../controllers/statusController.js';
+import { addDisponibilidade, fetchDisponibilidades, toggleDisponibilidadeStatus } from '../controllers/disponibilidadeController.js';
 import { addComarca, deleteComarca, fetchComarcas, updateComarca } from '../controllers/comarcaController.js';
 import { fetchJuizados, addJuizado, updateJuizado, deleteJuizado } from '../controllers/juizadoController.js';
 import { fetchSalasVirtuais, addSalaVirtual, updateSalaVirtual, deleteSalaVirtual } from '../controllers/salaVirtualController.js';
@@ -26,12 +26,12 @@ export function registerApiRoutes(app) {
     app.post('/api/status', addStatus);
     app.put('/api/status/:id', updateStatus);
     app.delete('/api/status/:id', deleteStatus);
+    app.patch('/api/status/:id', toggleStatus); // Corrigido aqui
 
     // Rotas para disponibilidades
     app.get('/api/disponibilidades', fetchDisponibilidades);
     app.post('/api/disponibilidades', addDisponibilidade);
-    app.delete('/api/disponibilidades/:id', deleteDisponibilidade);
-    app.patch('/api/disponibilidades/:id', toggleDisponibilidadeStatus);  // Corrigido aqui
+    app.patch('/api/disponibilidades/:id', toggleDisponibilidadeStatus);
 
     // Rotas para juizados
     app.get('/api/juizados', fetchJuizados);

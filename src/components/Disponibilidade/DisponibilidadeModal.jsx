@@ -5,12 +5,11 @@ import moment from 'moment';
 const { Option } = Select;
 const { MonthPicker } = DatePicker;
 
-// Função para calcular dias úteis em um determinado mês e ano
 const getBusinessDays = (year, month) => {
     let date = moment([year, month - 1]);
     let businessDays = 0;
     while (date.month() === month - 1) {
-        if (date.day() !== 0 && date.day() !== 6) { // Exclui domingos (0) e sábados (6)
+        if (date.day() !== 0 && date.day() !== 6) {
             businessDays++;
         }
         date.add(1, 'day');
@@ -31,10 +30,23 @@ const DisponibilidadeModal = ({ form, isModalVisible, onFinish, onCancel, filter
         }
     }, [monthYear]);
 
+    useEffect(() => {
+        if (editingDisponibilidade) {
+            form.setFieldsValue({
+                conciliador_id: editingDisponibilidade.conciliador_id,
+                ano: editingDisponibilidade.ano,
+                mes: moment(editingDisponibilidade.mes, 'YYYY-MM'),
+                quantidade_dias: editingDisponibilidade.quantidade_dias,
+                dias_da_semana: editingDisponibilidade.dias_da_semana,
+                status_id: editingDisponibilidade.status_id,
+            });
+            setSelectedDays(editingDisponibilidade.dias_da_semana || []);
+        }
+    }, [editingDisponibilidade, form]);
+
     const handleDaysChange = (checkedValues) => {
         setSelectedDays(checkedValues);
-        const currentValues = form.getFieldsValue();
-        form.setFieldsValue(currentValues);
+        form.setFieldsValue({ dias_da_semana: checkedValues });
     };
 
     const handleMonthChange = (date) => {
@@ -113,7 +125,7 @@ const DisponibilidadeModal = ({ form, isModalVisible, onFinish, onCancel, filter
                     label="Dias da Semana"
                     rules={[{ required: true, message: 'Selecione ao menos um dia da semana' }]}
                 >
-                    <Checkbox.Group onChange={handleDaysChange}>
+                    <Checkbox.Group value={selectedDays} onChange={handleDaysChange}>
                         <Checkbox value="Segunda">Segundas</Checkbox>
                         <Checkbox value="Terça">Terças</Checkbox>
                         <Checkbox value="Quarta">Quartas</Checkbox>

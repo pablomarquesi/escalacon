@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Form, Input, Button, Select, Modal, message, Space } from 'antd';
+import { Form, Input, Button, Select, Modal, message, Space, Collapse } from 'antd';
 import { fetchSalasVirtuais, saveSalaVirtual, deleteSalaVirtual } from '../../services/salaVirtualService';
 import { fetchJuizados } from '../../services/juizadoService';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import HeaderSection from '../common/HeaderSection'; // Certifique-se de que o caminho está correto
+import CustomTable from '../common/CustomTable'; // Importa o CustomTable
 
 const { Option } = Select;
+const { Panel } = Collapse;
 
 const SalaVirtual = () => {
     const [form] = Form.useForm();
@@ -81,12 +83,16 @@ const SalaVirtual = () => {
         sala.nome_sala_virtual.toLowerCase().includes(searchText)
     );
 
+    const groupedSalasVirtuais = filteredSalasVirtuais.reduce((acc, sala) => {
+        const juizado = sala.nome_juizado;
+        if (!acc[juizado]) {
+            acc[juizado] = [];
+        }
+        acc[juizado].push(sala);
+        return acc;
+    }, {});
+
     const columns = [
-        {
-            title: 'Juizado',
-            dataIndex: 'nome_juizado',
-            key: 'nome_juizado',
-        },
         {
             title: 'Nome da Sala Virtual',
             dataIndex: 'nome_sala_virtual',
@@ -137,7 +143,18 @@ const SalaVirtual = () => {
                     Adicionar Sala Virtual
                 </Button>
             </HeaderSection>
-            <Table columns={columns} dataSource={filteredSalasVirtuais} rowKey="sala_virtual_id" />
+            <Collapse>
+                {Object.entries(groupedSalasVirtuais).map(([juizado, salas]) => (
+                    <Panel header={juizado} key={juizado}>
+                        <CustomTable
+                            columns={columns}
+                            dataSource={salas}
+                            rowKey="sala_virtual_id"
+                            pagination={false}
+                        />
+                    </Panel>
+                ))}
+            </Collapse>
             <Modal
                 title={editingSalaVirtual ? 'Editar Sala Virtual' : 'Adicionar Sala Virtual'}
                 visible={isModalVisible}

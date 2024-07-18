@@ -88,17 +88,3 @@ export async function toggleDisponibilidadeStatus(req, res) {
         res.status(500).json({ error: 'Erro no servidor ao alterar status da disponibilidade do conciliador' });
     }
 }
-
-export async function deleteDisponibilidade(req, res) {
-    const { id } = req.params;
-    try {
-        const result = await db.query(`DELETE FROM disponibilidade_conciliador WHERE id = ?`, [id]);
-        if (result[0].affectedRows > 0) {
-            res.status(200).json({ message: "Disponibilidade excluída com sucesso." });
-        } else {
-            res.status(404).json({ message: "Disponibilidade não encontrada." });
-        }
-    } catch (error) {
-        res.status(500).json({ error: 'Erro no servidor ao excluir disponibilidade' });
-    }
-}

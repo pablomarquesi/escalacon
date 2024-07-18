@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Button, Form, Input, Modal, message } from 'antd';
+import { Button, Form, Input, Modal } from 'antd';
 
 const { TextArea } = Input;
 
@@ -14,16 +14,7 @@ const StatusModal = ({ isVisible, onCancel, onSubmit, form }) => {
             <Form
                 form={form}
                 layout="vertical"
-                onFinish={async (values) => {
-                    try {
-                        await onSubmit(values);
-                        message.success('Status salvo com sucesso');
-                        form.resetFields();
-                        onCancel(); // Fechar o modal
-                    } catch (error) {
-                        message.error(`Erro ao salvar status: ${error.message}. Tente novamente.`);
-                    }
-                }}
+                onFinish={onSubmit}
             >
                 <Form.Item name="nome_status" label="Nome do Status" rules={[{ required: true, message: 'Insira o nome do status!' }]}>
                     <Input />

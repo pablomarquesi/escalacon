@@ -45,3 +45,18 @@ export const deleteStatus = async (id) => {
         throw error;
     }
 };
+
+export const toggleStatus = async (id, currentStatus) => {
+    try {
+        const newStatus = currentStatus === 'Ativo' ? 'Inativo' : 'Ativo';
+        const response = await axios.patch(`${API_URL}/status/${id}`, { status: newStatus }, {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Erro ao alterar status:', error);
+        throw error;
+    }
+};

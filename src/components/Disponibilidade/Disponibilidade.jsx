@@ -71,7 +71,7 @@ const Disponibilidade = () => {
             };
 
             if (editingDisponibilidade) {
-                await deleteDisponibilidade(editingDisponibilidade.id);
+                disponibilidadeData.id = editingDisponibilidade.id;
             }
 
             await saveDisponibilidade(disponibilidadeData);
@@ -93,7 +93,7 @@ const Disponibilidade = () => {
             ano: record.ano,
             mes: moment(record.mes, 'YYYY-MM'),
             quantidade_dias: record.quantidade_dias,
-            dias_da_semana: record.dia_da_semana.split(',').map(dia => dia.trim()),
+            dias_da_semana: Array.isArray(record.dias_da_semana) ? record.dias_da_semana : (record.dias_da_semana || '').split(',').map(dia => dia.trim()),
             status_id: record.status_id
         };
         form.setFieldsValue(fieldsValue);
@@ -189,7 +189,7 @@ const Disponibilidade = () => {
             title: 'Dias da Semana',
             dataIndex: 'dias_da_semana',
             key: 'dias_da_semana',
-            render: (dias) => dias.join(', '),
+            render: (dias) => Array.isArray(dias) ? dias.join(', ') : dias,
             align: 'left',
         },
         {

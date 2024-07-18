@@ -1,14 +1,14 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { Button, Table, message, Form, Spin } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
-import { fetchStatus, saveStatus, deleteStatus } from '../../services/statusService';
+import React, { useEffect, useState } from 'react';
+import { Button, message, Form, Spin, Switch, Space, Tooltip, Popconfirm } from 'antd';
+import { PlusOutlined, EditOutlined } from '@ant-design/icons';
+import { fetchStatus, saveStatus, toggleStatus } from '../../services/statusService';
 import StatusModal from './StatusModal';
-import getTableColumnsStatus from '../getTableColumnsStatus';
-import debounce from 'lodash/debounce';
 import HeaderSection from '../common/HeaderSection';
+import CustomTable from '../common/CustomTable';
 
 const CadastroStatus = () => {
     const [statusList, setStatusList] = useState([]);
+    const [filteredStatusList, setFilteredStatusList] = useState([]);
     const [searchText, setSearchText] = useState('');
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [editingRecord, setEditingRecord] = useState(null);
@@ -16,21 +16,23 @@ const CadastroStatus = () => {
     const [form] = Form.useForm();
 
     useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            try {
-                const statusData = await fetchStatus();
-                const sortedStatus = statusData.sort((a, b) => a.nome_status.localeCompare(b.nome_status));
-                setStatusList(sortedStatus);
-            } catch (error) {
-                console.error('Erro ao buscar status:', error);
-                message.error('Erro ao buscar status. Tente novamente.');
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchData();
+        loadStatusList();
     }, []);
+
+    const loadStatusList = async () => {
+        setLoading(true);
+        try {
+            const data = await fetchStatus();
+            const sortedData = data.sort((a, b) => a.nome_status.localeCompare(b.nome_status));
+            setStatusList(sortedData);
+            setFilteredStatusList(sortedData);
+        } catch (error) {
+            console.error('Erro ao buscar status:', error);
+            message.error('Erro ao buscar status. Tente novamente.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const showModal = (record = null) => {
         if (record) {
@@ -58,12 +60,8 @@ const CadastroStatus = () => {
                 ...(editingRecord ? { status_id: editingRecord.status_id } : {})
             };
 
-            console.log('Enviando dados:', statusData); // Log dos dados enviados
-
             await saveStatus(statusData);
-            const statusListData = await fetchStatus();
-            const sortedStatus = statusListData.sort((a, b) => a.nome_status.localeCompare(b.nome_status));
-            setStatusList(sortedStatus);
+            loadStatusList();  // Carregar a lista após salvar
             setIsModalVisible(false);
             form.resetFields();
             message.success(editingRecord ? 'Status atualizado com sucesso' : 'Status adicionado com sucesso');
@@ -75,39 +73,70 @@ const CadastroStatus = () => {
         }
     };
 
-    const handleDelete = async (id) => {
+    const handleToggleStatus = async (id, currentStatus) => {
         setLoading(true);
         try {
-            await deleteStatus(id);
-            const statusListData = await fetchStatus();
-            const sortedStatus = statusListData.sort((a, b) => a.nome_status.localeCompare(b.nome_status));
-            setStatusList(sortedStatus);
-            message.success('Status excluído com sucesso');
+            await toggleStatus(id, currentStatus);
+            loadStatusList();
+            message.success('Status alterado com sucesso');
         } catch (error) {
-            console.error('Erro ao excluir status:', error);
-            message.error('Erro ao excluir status. Tente novamente.');
+            console.error('Erro ao alterar status:', error);
+            message.error('Erro ao alterar status. Tente novamente.');
         } finally {
             setLoading(false);
         }
     };
 
-    const handleSearch = useCallback(
-        debounce((e) => {
-            const value = e.target.value.toLowerCase();
-            setSearchText(value);
-        }, 300),
-        []
-    );
+    const handleSearch = (e) => {
+        const value = e.target.value.toLowerCase();
+        setSearchText(value);
 
-    const filteredStatus = searchText
-        ? statusList.filter(status =>
-            Object.keys(status).some(key =>
-                String(status[key]).toLowerCase().includes(searchText)
-            )
-        )
-        : statusList;
+        const filtered = statusList.filter(status =>
+            status.nome_status.toLowerCase().includes(value)
+        );
+        setFilteredStatusList(filtered);
+    };
 
-    const columns = getTableColumnsStatus(showModal, handleDelete);
+    const columns = [
+        {
+            title: 'Nome do Status',
+            dataIndex: 'nome_status',
+            key: 'nome_status',
+            align: 'left',
+        },
+        {
+            title: 'Descrição',
+            dataIndex: 'descricao_status',
+            key: 'descricao_status',
+            align: 'left',
+        },
+        {
+            title: 'Ações',
+            key: 'actions',
+            align: 'center',
+            render: (text, record) => (
+                <Space size="middle">
+                    <Button
+                        type="default"
+                        icon={<EditOutlined />}
+                        onClick={() => showModal(record)}
+                    />
+                    <Popconfirm
+                        title={`Tem certeza que deseja ${record.status === 'Ativo' ? 'inativar' : 'ativar'} este status?`}
+                        onConfirm={() => handleToggleStatus(record.status_id, record.status)}
+                        okText="Sim"
+                        cancelText="Não"
+                    >
+                        <Tooltip title={record.status === 'Ativo' ? 'Desativar' : 'Ativar'}>
+                            <Switch
+                                checked={record.status === 'Ativo'}
+                            />
+                        </Tooltip>
+                    </Popconfirm>
+                </Space>
+            ),
+        },
+    ];
 
     return (
         <div>
@@ -124,21 +153,19 @@ const CadastroStatus = () => {
                     Adicionar
                 </Button>
             </HeaderSection>
-            <div className="table-container">
-                <Spin spinning={loading}>
-                    <Table 
-                        dataSource={filteredStatus} 
-                        columns={columns} 
-                        rowKey="status_id"
-                        pagination={{
-                            pageSizeOptions: ['10', '20', '50', '100'],
-                            showSizeChanger: true,
-                            defaultPageSize: 10,
-                            showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} itens`
-                        }} 
-                    />
-                </Spin>
-            </div>
+            <Spin spinning={loading}>
+                <CustomTable 
+                    dataSource={filteredStatusList} 
+                    columns={columns} 
+                    rowKey="status_id"
+                    pagination={{
+                        pageSizeOptions: ['10', '20', '50', '100'],
+                        showSizeChanger: true,
+                        defaultPageSize: 10,
+                        showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} itens`
+                    }} 
+                />
+            </Spin>
             <StatusModal
                 isVisible={isModalVisible}
                 onCancel={handleCancel}
