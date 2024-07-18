@@ -13,15 +13,15 @@ import Juizado from "./components/Juizado/Juizado";
 import SalaVirtual from "./components/SalaVirtual/SalaVirtual";
 import UserMenu from './components/UserMenu/UserMenu';
 import Login from './components/Login/Login';
-import logo from './assets/logo.png'; // Adicione o caminho para sua logomarca
+import logo from './assets/logo.png';
+import './index.css';
 
-const { Header, Sider, Content, Footer } = Layout;
+const { Header, Sider, Content } = Layout;
 
 function App() {
   const [collapsed, setCollapsed] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Verificar autenticação no localStorage
   useEffect(() => {
     const authStatus = localStorage.getItem('isAuthenticated');
     setIsAuthenticated(authStatus === 'true');
@@ -39,7 +39,7 @@ function App() {
 
   return (
     <Router>
-      <Layout>
+      <Layout style={{ minHeight: '100vh' }}>
         {isAuthenticated && (
           <Sider
             collapsed={collapsed}
@@ -60,14 +60,14 @@ function App() {
                 className="toggle"
                 onClick={() => setCollapsed(!collapsed)}
                 icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />} />
-              <UserMenu onLogout={handleLogout} /> {/* Passa a função handleLogout */}
+              <UserMenu onLogout={handleLogout} />
             </Header>
           )}
           <Content style={{ margin: '24px 16px', padding: 24, minHeight: 280 }}>
             <Routes>
-              <Route path="/login" element={<Login onLogin={handleLogin} />} /> {/* Passando prop para autenticar */}
-              <Route path="/" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />} /> {/* Redirecionando para login ou dashboard */}
-              <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} /> {/* Redirecionando para login se não autenticado */}
+              <Route path="/login" element={<Login onLogin={handleLogin} />} />
+              <Route path="/" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />} />
+              <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} />
               <Route path="/escala" element={isAuthenticated ? <CalendarioConciliadores /> : <Navigate to="/login" />} />
               <Route path="/cadastro/conciliador" element={isAuthenticated ? <CadastroConciliador /> : <Navigate to="/login" />} />
               <Route path="/cadastro/disponibilidade" element={isAuthenticated ? <Disponibilidade /> : <Navigate to="/login" />} />

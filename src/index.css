@@ -10,8 +10,14 @@
   font-family: 'Poppins', sans-serif;
 }
 
+html, body, #root, .site-layout, .sidebar {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 body {
-  background-color: #f8f9fa; /* Cor mais leve para o fundo */
+  background-color: #f8f9fa;
 }
 
 h1 {
@@ -20,28 +26,29 @@ h1 {
 }
 
 .card, .small-card {
-  margin-bottom: 16px; /* Reduzido para diminuir o espaço entre os cards */
+  margin-bottom: 16px;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Sombra mais suave */
-  cursor: pointer; /* Adicionar cursor de ponteiro para indicar interatividade */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
 }
 
 .small-card {
-  height: 120px; /* Ajuste a altura conforme necessário */
+  height: 120px;
   display: flex;
   align-items: center;
   justify-content: center;
-  text-align: center; /* Centralizar o texto */
+  text-align: center;
 }
 
 .sidebar {
-  color: #495057; /* Texto em cor mais suave */
-  height: 100vh; /* Garantir altura total da tela */
+  color: #495057;
+  height: 100vh;
+  overflow: auto;
 }
 
 .header {
   background-color: #fff;
-  color: #495057; /* Texto em cor mais suave */
+  color: #495057;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -61,7 +68,7 @@ h1 {
 }
 
 .logo-text {
-  color: white; /* Texto em cor branca */
+  color: white;
   font-size: 1.5rem;
   padding: 1rem;
 }
@@ -80,7 +87,7 @@ h1 {
   padding: 20px;
   background-color: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Sombra mais suave */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .header-container {
@@ -100,7 +107,7 @@ h1 {
 }
 
 .dashboard-title {
-  font-size: 18px; /* Diminuir o tamanho da fonte */
+  font-size: 18px;
   margin-bottom: 24px;
 }
 
@@ -118,11 +125,11 @@ h1 {
 }
 
 .ant-picker {
-  width: 100%; /* Ajuste o tamanho do seletor conforme necessário */
+  width: 100%;
 }
 
 .large-card {
-  height: 550px; /* Aumentado para dar mais espaço aos gráficos */
+  height: 550px;
 }
 
 .ant-card-body {
@@ -132,14 +139,13 @@ h1 {
   padding: 16px;
 }
 
-/* Estilos para a barra de busca */
 .search-bar {
   margin-right: 8px;
-  width: 60%; /* Aumentar a largura */
-  max-width: 600px; /* Aumentar o valor máximo para a largura */
+  width: 60%;
+  max-width: 600px;
   border-radius: 4px;
-  padding: 4px 8px; /* Diminuir a altura */
-  font-size: 14px; /* Diminuir o tamanho da fonte */
+  padding: 4px 8px;
+  font-size: 14px;
   border: 1px solid #d9d9d9;
   transition: all 0.3s ease-in-out;
 }
@@ -153,25 +159,23 @@ h1 {
   color: #bfbfbf;
 }
 
-/* Estilos para os gráficos */
 .ant-charts-column rect {
-  height: 100px; /* Aumentar a altura das barras */
-  width: 15px; /* Diminuir a largura das barras */
+  height: 100px;
+  width: 15px;
 }
 
-/* Estilos adicionais para o header */
 .header-section {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 16px 0;
   border-bottom: 1px solid #e8e8e8;
-  margin-bottom: 0; /* Adicionado para remover a margem inferior */
+  margin-bottom: 0;
 }
 
 .header-section h2 {
   margin: 0;
-  font-size: 18px; /* Diminuir o tamanho da fonte */
+  font-size: 18px;
 }
 
 .header-section .search-bar {
@@ -184,39 +188,37 @@ h1 {
   gap: 8px;
 }
 
-/* Estilos personalizados para a tabela */
 .custom-table .ant-table {
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Sombra mais suave */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   background-color: #fff;
 }
 
 .custom-table .ant-table-thead > tr > th {
-  background-color: #f8f9fa; /* Cor mais leve para o cabeçalho */
-  color: #495057; /* Texto em cor mais suave */
+  background-color: #f8f9fa;
+  color: #495057;
   font-weight: 600;
   text-align: center;
 }
 
 .custom-table .ant-table-tbody > tr > td {
   text-align: center;
-  padding: 8px; /* Diminui a altura das linhas */
+  padding: 8px;
 }
 
 .custom-table .ant-table-tbody > tr > td.name-column {
-  text-align: left; /* Justifica à esquerda o nome do conciliador */
+  text-align: left;
 }
 
 .custom-table .ant-table-tbody > tr:hover {
-  background-color: #e9ecef; /* Cor mais leve ao passar o mouse */
+  background-color: #e9ecef;
 }
 
 .custom-table .ant-pagination {
   margin-right: 16px;
 }
 
-/* Estilos para botões */
 .custom-button {
   background-color: #1890ff;
   color: #fff;
@@ -235,9 +237,8 @@ h1 {
   box-shadow: 0 0 8px rgba(24, 144, 255, 0.2);
 }
 
-/* Reduzir o espaço entre header e o ant-layout-header */
 .ant-layout-header {
-  padding: 0; /* Reduzir o padding para diminuir o espaço */
+  padding: 0;
 }
 
 .user-menu-button {
@@ -254,7 +255,6 @@ h1 {
   margin-right: 8px;
 }
 
-/* Estilos para a tela de login */
 .login-container {
   max-width: 800px;
   margin: 100px auto;
@@ -276,7 +276,7 @@ h1 {
 }
 
 .login-logo-container {
-  background-color: #001529; /* Cor do fundo da logo, mesma cor do menu */
+  background-color: #001529;
   padding: 16px;
   border-radius: 4px;
   display: flex;

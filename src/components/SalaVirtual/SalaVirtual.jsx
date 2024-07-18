@@ -97,6 +97,7 @@ const SalaVirtual = () => {
             title: 'Nome da Sala Virtual',
             dataIndex: 'nome_sala_virtual',
             key: 'nome_sala_virtual',
+            align: 'left',
         },
         {
             title: 'Tipo de Pauta',
