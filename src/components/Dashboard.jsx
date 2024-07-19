@@ -35,7 +35,9 @@ const Dashboard = () => {
         acc[month]++;
         return acc;
       }, {});
-      const chartData = Object.keys(data).map(key => ({ month: key, value: data[key] }));
+      const chartData = Object.keys(data)
+        .sort()
+        .map(key => ({ month: key, value: data[key] }));
       setCredenciamentoData(chartData);
     } catch (error) {
       console.error('Erro ao buscar dados de credenciamento:', error);
@@ -46,7 +48,7 @@ const Dashboard = () => {
     try {
       const response = await axios.get('http://localhost:3000/api/disponibilidades', { params: { filter } });
       const data = response.data.reduce((acc, disponibilidade) => {
-        const dias = disponibilidade.dias_da_semana.split(',');
+        const dias = disponibilidade.dia_da_semana.split(',');
         dias.forEach(dia => {
           if (!acc[dia]) {
             acc[dia] = 0;
@@ -61,7 +63,7 @@ const Dashboard = () => {
         day,
         value: data[day] || 0
       }));
-      
+
       setDisponibilidadeData(chartData);
     } catch (error) {
       console.error('Erro ao buscar dados de disponibilidade:', error);
@@ -117,15 +119,15 @@ const Dashboard = () => {
   const fetchTotalConciliadoresDisponiveis = async () => {
     try {
       const response = await axios.get('http://localhost:3000/api/disponibilidades', { params: { filter } });
-      const conciliadoresIds = new Set(response.data.map(d => d.conciliador_id));
+      const conciliadoresIds = new Set(response.data.filter(d => d.status_disponibilidade === 'Ativo').map(d => d.nome_conciliador));
       setTotalConciliadoresDisponiveis(conciliadoresIds.size);
     } catch (error) {
       console.error('Erro ao buscar total de conciliadores disponíveis:', error);
     }
   };
 
-  const handleCardClick = (type) => {
-    setFilter(type);
+  const handleCardClick = (url) => {
+    window.location.href = url;
   };
 
   const credenciamentoConfig = {
@@ -134,10 +136,9 @@ const Dashboard = () => {
     yField: 'value',
     xAxis: {
       type: 'cat',
-      tickCount: 5,
       title: { text: 'Mês e Ano' },
       label: {
-        formatter: (v) => moment(v).format('MMM YYYY'), // Formata o mês e ano no eixo x
+        formatter: (v) => moment(v, 'YYYY-MM').format('MMM YYYY'), // Formata o mês e ano no eixo x
       },
     },
     yAxis: {
@@ -161,17 +162,22 @@ const Dashboard = () => {
     data: disponibilidadeData,
     xField: 'day',
     yField: 'value',
-    label: {
-      position: 'middle',
-      style: { fill: '#000000', opacity: 0.8 },
-      formatter: datum => datum.value,
-    },
     xAxis: {
-      label: { autoHide: true, autoRotate: false },
+      type: 'cat',
+      title: { text: 'Dia da Semana' },
+      label: {
+        formatter: (v) => v,
+      },
     },
-    meta: {
-      day: { alias: 'Dia da Semana' },
-      value: { alias: 'Disponibilidade' },
+    yAxis: {
+      title: { text: 'Disponibilidade' },
+    },
+    tooltip: {
+      fields: ['day', 'value'],
+      formatter: datum => ({
+        name: `${datum.day}`,
+        value: datum.value,
+      }),
     },
     height: 400,
     columnWidthRatio: 0.8,
@@ -209,22 +215,40 @@ const Dashboard = () => {
       <h1 className="dashboard-title">Dashboard</h1>
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} lg={6}>
-          <Card title="Quantidade de Juizados" bordered={false} className="small-card" onClick={() => handleCardClick('juizados')}>
+          <Card 
+            title="Quantidade de Juizados" 
+            bordered={false} 
+            className="small-card"
+          >
             <h2>{totalJuizados}</h2>
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card title="Quantidade de Salas Virtuais" bordered={false} className="small-card" onClick={() => handleCardClick('salasvirtuais')}>
+          <Card 
+            title="Quantidade de Salas Virtuais" 
+            bordered={false} 
+            className="small-card"
+          >
             <h2>{totalSalasVirtuais}</h2>
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card title="Quantidade de Conciliadores" bordered={false} className="small-card" onClick={() => handleCardClick('conciliadores')}>
+          <Card 
+            title="Quantidade de Conciliadores" 
+            bordered={false} 
+            className="small-card" 
+            onClick={() => handleCardClick('http://localhost:5173/cadastro/conciliador')}
+          >
             <h2>{totalConciliadores}</h2>
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card title="Conciliadores Disponíveis" bordered={false} className="small-card" onClick={() => handleCardClick('disponibilidades')}>
+          <Card 
+            title="Conciliadores Disponíveis" 
+            bordered={false} 
+            className="small-card" 
+            onClick={() => handleCardClick('http://localhost:5173/cadastro/disponibilidade')}
+          >
             <h2>{totalConciliadoresDisponiveis}</h2>
           </Card>
         </Col>
