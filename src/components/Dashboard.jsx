@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Pie, Column } from '@ant-design/charts';
+import { Line, Column, Pie } from '@ant-design/charts';
 import axios from 'axios';
 import { Card, Row, Col } from 'antd';
+import moment from 'moment';
 
 const Dashboard = () => {
-  const [salasPorJuizadoData, setSalasPorJuizadoData] = useState([]);
+  const [credenciamentoData, setCredenciamentoData] = useState([]);
   const [disponibilidadeData, setDisponibilidadeData] = useState([]);
   const [statusData, setStatusData] = useState([]);
   const [totalConciliadores, setTotalConciliadores] = useState(0);
@@ -14,7 +15,7 @@ const Dashboard = () => {
   const [filter, setFilter] = useState(null);
 
   useEffect(() => {
-    fetchSalasPorJuizadoData();
+    fetchCredenciamentoData();
     fetchDisponibilidadeData();
     fetchStatusData();
     fetchTotalConciliadores();
@@ -23,21 +24,21 @@ const Dashboard = () => {
     fetchTotalConciliadoresDisponiveis();
   }, [filter]);
 
-  const fetchSalasPorJuizadoData = async () => {
+  const fetchCredenciamentoData = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/salasvirtuais', { params: { filter } });
-      const data = response.data.reduce((acc, sala) => {
-        const juizado = sala.nome_juizado;
-        if (!acc[juizado]) {
-          acc[juizado] = 0;
+      const response = await axios.get('http://localhost:3000/api/conciliadores', { params: { filter } });
+      const data = response.data.reduce((acc, conciliador) => {
+        const month = moment(conciliador.data_credenciamento).format('YYYY-MM');
+        if (!acc[month]) {
+          acc[month] = 0;
         }
-        acc[juizado]++;
+        acc[month]++;
         return acc;
       }, {});
-      const chartData = Object.keys(data).map(key => ({ juizado: key, value: data[key] }));
-      setSalasPorJuizadoData(chartData);
+      const chartData = Object.keys(data).map(key => ({ month: key, value: data[key] }));
+      setCredenciamentoData(chartData);
     } catch (error) {
-      console.error('Erro ao buscar dados de salas por juizado:', error);
+      console.error('Erro ao buscar dados de credenciamento:', error);
     }
   };
 
@@ -127,25 +128,33 @@ const Dashboard = () => {
     setFilter(type);
   };
 
-  const salasPorJuizadoConfig = {
-    appendPadding: 10,
-    data: salasPorJuizadoData,
-    angleField: 'value',
-    colorField: 'juizado',
-    radius: 0.8,
-    innerRadius: 0.6,
-    label: {
-      type: 'inner',
-      offset: '-30%',
-      content: '{value}',
-      style: { fontSize: 12, textAlign: 'center' },
+  const credenciamentoConfig = {
+    data: credenciamentoData,
+    xField: 'month',
+    yField: 'value',
+    xAxis: {
+      type: 'cat',
+      tickCount: 5,
+      title: { text: 'Mês e Ano' },
+      label: {
+        formatter: (v) => moment(v).format('MMM YYYY'), // Formata o mês e ano no eixo x
+      },
+    },
+    yAxis: {
+      label: {
+        formatter: v => `${v}`
+      },
+      title: { text: 'Quantidade de Credenciamentos' },
     },
     tooltip: {
-      fields: ['juizado', 'value'],
-      formatter: datum => ({ name: datum.juizado, value: datum.value }),
+      fields: ['month', 'value'],
+      formatter: datum => ({
+        name: 'Credenciamentos',
+        value: datum.value,
+      }),
     },
-    interactions: [{ type: 'element-selected' }, { type: 'element-active' }],
-    statistic: { title: false, content: { style: { whiteSpace: 'pre-wrap', overflow: 'hidden', textOverflow: 'ellipsis' } } },
+    smooth: true,
+    height: 400, // Define a altura do gráfico
   };
 
   const disponibilidadeConfig = {
@@ -164,9 +173,9 @@ const Dashboard = () => {
       day: { alias: 'Dia da Semana' },
       value: { alias: 'Disponibilidade' },
     },
-    height: 400, // Aumentar a altura das barras
+    height: 400,
     columnWidthRatio: 0.8,
-    barWidthRatio: 0.8, // Aumentar a largura das barras
+    barWidthRatio: 0.8,
   };
 
   const statusConfig = {
@@ -175,7 +184,7 @@ const Dashboard = () => {
     angleField: 'value',
     colorField: 'status',
     radius: 0.8,
-    innerRadius: 0.6, // Transforma o gráfico em rosca
+    innerRadius: 0.6,
     label: {
       type: 'inner',
       offset: '-30%',
@@ -222,8 +231,8 @@ const Dashboard = () => {
       </Row>
       <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
         <Col xs={24} lg={8}>
-          <Card title="Quantidade de Salas por Juizado" bordered={false} className="large-card">
-            <Pie {...salasPorJuizadoConfig} />
+          <Card title="Credenciamentos por Mês" bordered={false} className="large-card">
+            <Line {...credenciamentoConfig} />
           </Card>
         </Col>
         <Col xs={24} lg={8}>

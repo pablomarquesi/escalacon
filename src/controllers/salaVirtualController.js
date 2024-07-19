@@ -3,7 +3,7 @@ import db from '../config/database.js';
 export async function fetchSalasVirtuais(req, res) {
     try {
         const [salas] = await db.query(
-            `SELECT s.sala_virtual_id, s.juizado_id, s.nome_sala_virtual, tp.nome_pauta AS tipo_pauta, s.situacao, j.nome_juizado 
+            `SELECT s.sala_virtual_id, s.juizado_id, s.nome_sala_virtual, s.tipo_pauta_id, tp.nome_pauta AS tipo_pauta, s.situacao, j.nome_juizado 
             FROM sala_virtual AS s
             INNER JOIN juizado AS j ON s.juizado_id = j.juizado_id
             INNER JOIN tipo_de_pauta AS tp ON s.tipo_pauta_id = tp.id`

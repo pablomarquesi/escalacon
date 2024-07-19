@@ -66,7 +66,10 @@ const SalaVirtual = () => {
 
     const handleEdit = (record) => {
         setEditingSalaVirtual(record);
-        form.setFieldsValue(record);
+        form.setFieldsValue({
+            ...record,
+            tipo_pauta_id: tiposPauta.find(tipo => tipo.nome_pauta === record.tipo_pauta)?.id
+        });
         setIsModalVisible(true);
     };
 
