@@ -156,8 +156,10 @@ const SalaVirtual = () => {
                                             title={sala.nome_sala_virtual}
                                             description={
                                                 <>
-                                                    <p><strong>Tipo de Pauta:</strong> {sala.tipo_pauta}</p>
-                                                    <p><strong>Situação:</strong> {sala.situacao}</p>
+                                                    <p>
+                                                        <strong>Tipo de Pauta:</strong> {sala.tipo_pauta} | 
+                                                        <strong> Situação:</strong> {sala.situacao}
+                                                    </p>
                                                 </>
                                             }
                                         />
