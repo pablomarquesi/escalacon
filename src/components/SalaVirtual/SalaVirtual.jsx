@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Form, Input, Button, Select, Modal, message, Space, Collapse } from 'antd';
-import { fetchSalasVirtuais, saveSalaVirtual, deleteSalaVirtual } from '../../services/salaVirtualService';
+import { fetchSalasVirtuais, saveSalaVirtual, deleteSalaVirtual, fetchTiposPauta } from '../../services/salaVirtualService';
 import { fetchJuizados } from '../../services/juizadoService';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
-import HeaderSection from '../common/HeaderSection'; // Certifique-se de que o caminho está correto
-import CustomTable from '../common/CustomTable'; // Importa o CustomTable
+import HeaderSection from '../common/HeaderSection';
+import CustomTable from '../common/CustomTable';
 
 const { Option } = Select;
 const { Panel } = Collapse;
@@ -13,6 +13,7 @@ const SalaVirtual = () => {
     const [form] = Form.useForm();
     const [salasVirtuais, setSalasVirtuais] = useState([]);
     const [juizados, setJuizados] = useState([]);
+    const [tiposPauta, setTiposPauta] = useState([]);
     const [editingSalaVirtual, setEditingSalaVirtual] = useState(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [searchText, setSearchText] = useState('');
@@ -20,6 +21,7 @@ const SalaVirtual = () => {
     useEffect(() => {
         loadSalasVirtuais();
         loadJuizados();
+        loadTiposPauta();
     }, []);
 
     const loadSalasVirtuais = async () => {
@@ -37,6 +39,15 @@ const SalaVirtual = () => {
             setJuizados(data);
         } catch (error) {
             message.error('Erro ao carregar juizados');
+        }
+    };
+
+    const loadTiposPauta = async () => {
+        try {
+            const data = await fetchTiposPauta();
+            setTiposPauta(data);
+        } catch (error) {
+            message.error('Erro ao carregar tipos de pauta');
         }
     };
 
@@ -141,7 +152,7 @@ const SalaVirtual = () => {
                     icon={<PlusOutlined />}
                     onClick={() => setIsModalVisible(true)}
                 >
-                    Adicionar Sala Virtual
+                    Adicionar
                 </Button>
             </HeaderSection>
             <Collapse>
@@ -184,11 +195,23 @@ const SalaVirtual = () => {
                         <Input />
                     </Form.Item>
                     <Form.Item
-                        name="tipo_pauta"
+                        name="tipo_pauta_id"
                         label="Tipo de Pauta"
-                        rules={[{ required: true, message: 'Por favor, insira o tipo de pauta' }]}
+                        rules={[{ required: true, message: 'Por favor, selecione o tipo de pauta' }]}
                     >
-                        <Input />
+                        <Select
+                            showSearch
+                            placeholder="Selecione um tipo de pauta"
+                            filterOption={(input, option) =>
+                                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                            }
+                        >
+                            {tiposPauta.map(tipo => (
+                                <Option key={tipo.id} value={tipo.id}>
+                                    {tipo.nome_pauta}
+                                </Option>
+                            ))}
+                        </Select>
                     </Form.Item>
                     <Form.Item
                         name="situacao"

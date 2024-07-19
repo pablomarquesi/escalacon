@@ -12,6 +12,16 @@ export const fetchSalasVirtuais = async () => {
     }
 };
 
+export const fetchTiposPauta = async () => {
+    try {
+        const response = await axios.get(`${API_URL}/tipospauta`);
+        return response.data;
+    } catch (error) {
+        console.error('Erro ao buscar tipos de pauta:', error);
+        throw error;
+    }
+};
+
 export const saveSalaVirtual = async (salaVirtual) => {
     try {
         const response = salaVirtual.sala_virtual_id

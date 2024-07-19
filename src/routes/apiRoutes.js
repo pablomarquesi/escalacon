@@ -3,7 +3,7 @@ import { fetchStatus, addStatus, updateStatus, deleteStatus, toggleStatus } from
 import { addDisponibilidade, fetchDisponibilidades, toggleDisponibilidadeStatus } from '../controllers/disponibilidadeController.js';
 import { addComarca, deleteComarca, fetchComarcas, updateComarca } from '../controllers/comarcaController.js';
 import { fetchJuizados, addJuizado, updateJuizado, deleteJuizado } from '../controllers/juizadoController.js';
-import { fetchSalasVirtuais, addSalaVirtual, updateSalaVirtual, deleteSalaVirtual } from '../controllers/salaVirtualController.js';
+import { fetchSalasVirtuais, addSalaVirtual, updateSalaVirtual, deleteSalaVirtual, fetchTiposPauta } from '../controllers/salaVirtualController.js';
 
 export function registerApiRoutes(app) {
     app.get('/testdb', testDbConnection);
@@ -44,4 +44,7 @@ export function registerApiRoutes(app) {
     app.post('/api/salasvirtuais', addSalaVirtual);
     app.put('/api/salasvirtuais/:id', updateSalaVirtual);
     app.delete('/api/salasvirtuais/:id', deleteSalaVirtual);
+
+    // Rota para tipos de pauta
+    app.get('/api/tipospauta', fetchTiposPauta);
 }
