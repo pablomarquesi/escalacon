@@ -16,6 +16,7 @@ const Juizado = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [searchText, setSearchText] = useState('');
     const [loading, setLoading] = useState(false);
+    const [filteredComarcas, setFilteredComarcas] = useState([]);
 
     useEffect(() => {
         loadJuizados();
@@ -39,6 +40,7 @@ const Juizado = () => {
         try {
             const data = await fetchComarcas();
             setComarcas(data);
+            setFilteredComarcas(data); // Inicialmente, todas as comarcas são exibidas
         } catch (error) {
             message.error('Erro ao carregar comarcas');
         } finally {
@@ -89,6 +91,13 @@ const Juizado = () => {
 
     const handleSearch = (e) => {
         setSearchText(e.target.value.toLowerCase());
+    };
+
+    const handleComarcaSearch = (value) => {
+        const filtered = comarcas.filter(comarca =>
+            comarca.nome_comarca.toLowerCase().includes(value.toLowerCase())
+        );
+        setFilteredComarcas(filtered);
     };
 
     const filteredJuizados = juizados.filter(juizado =>
@@ -169,7 +178,7 @@ const Juizado = () => {
                 onCancel={handleModalCancel}
                 footer={null}
                 style={{ top: 20 }}
-                bodyStyle={{ padding: '20px 40px' }}
+                bodyStyle={{ padding: '10px 20px' }}
             >
                 <Form form={form} layout="vertical" onFinish={handleFinish}>
                     <Form.Item
@@ -177,8 +186,13 @@ const Juizado = () => {
                         label="Comarca"
                         rules={[{ required: true, message: 'Por favor, selecione uma comarca' }]}
                     >
-                        <Select placeholder="Selecione uma comarca">
-                            {comarcas.map(comarca => (
+                        <Select
+                            placeholder="Selecione uma comarca"
+                            showSearch
+                            onSearch={handleComarcaSearch}
+                            filterOption={false}
+                        >
+                            {filteredComarcas.map(comarca => (
                                 <Option key={comarca.comarca_id} value={comarca.comarca_id}>
                                     {comarca.nome_comarca}
                                 </Option>
