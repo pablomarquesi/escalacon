@@ -8,7 +8,14 @@ const ComarcaModal = ({ isVisible, onCancel, onSubmit, form }) => {
     };
 
     return (
-        <Modal title="Cadastro de Comarca" visible={isVisible} onCancel={onCancel} footer={null}>
+        <Modal
+            title="Cadastro de Comarca"
+            visible={isVisible}
+            onCancel={onCancel}
+            footer={null}
+            style={{ top: 20 }}
+            bodyStyle={{ padding: '20px 24px' }}
+        >
             <Form form={form} layout="vertical" onFinish={onSubmit}>
                 <Form.Item name="nome_comarca" label="Nome da Comarca" rules={[{ required: true, message: 'Insira o nome da comarca!' }]}>
                     <Input />

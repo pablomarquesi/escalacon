@@ -13,7 +13,6 @@ import Juizado from "./components/Juizado/Juizado";
 import SalaVirtual from "./components/SalaVirtual/SalaVirtual";
 import UserMenu from './components/UserMenu/UserMenu';
 import Login from './components/Login/Login';
-import logo from './assets/logo.png';
 import './index.css';
 
 const { Header, Sider, Content } = Layout;
@@ -46,9 +45,7 @@ function App() {
             collapsible
             trigger={null}
             className='sidebar'>
-            <div className="logo-container">
-              <img src={logo} alt="Logo" className="logo" />
-            </div>
+
             <MenuList collapsed={collapsed} />
           </Sider>
         )}

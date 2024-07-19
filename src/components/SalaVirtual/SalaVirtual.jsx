@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Form, Input, Button, Select, Modal, message, Space, Collapse } from 'antd';
+import { Form, Input, Button, Select, Modal, message, Space, Collapse, List, Tooltip, Popconfirm } from 'antd';
 import { fetchSalasVirtuais, saveSalaVirtual, deleteSalaVirtual, fetchTiposPauta } from '../../services/salaVirtualService';
 import { fetchJuizados } from '../../services/juizadoService';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import HeaderSection from '../common/HeaderSection';
-import CustomTable from '../common/CustomTable';
 
 const { Option } = Select;
 const { Panel } = Collapse;
@@ -106,43 +105,6 @@ const SalaVirtual = () => {
         return acc;
     }, {});
 
-    const columns = [
-        {
-            title: 'Nome da Sala Virtual',
-            dataIndex: 'nome_sala_virtual',
-            key: 'nome_sala_virtual',
-            align: 'left',
-        },
-        {
-            title: 'Tipo de Pauta',
-            dataIndex: 'tipo_pauta',
-            key: 'tipo_pauta',
-        },
-        {
-            title: 'Situação',
-            dataIndex: 'situacao',
-            key: 'situacao',
-        },
-        {
-            title: 'Ações',
-            key: 'actions',
-            render: (text, record) => (
-                <Space size="middle">
-                    <Button
-                        type="primary"
-                        icon={<EditOutlined />}
-                        onClick={() => handleEdit(record)}
-                    />
-                    <Button
-                        type="danger"
-                        icon={<DeleteOutlined />}
-                        onClick={() => handleDelete(record.sala_virtual_id)}
-                    />
-                </Space>
-            ),
-        },
-    ];
-
     return (
         <div>
             <HeaderSection
@@ -158,18 +120,54 @@ const SalaVirtual = () => {
                     Adicionar
                 </Button>
             </HeaderSection>
-            <Collapse>
-                {Object.entries(groupedSalasVirtuais).map(([juizado, salas]) => (
-                    <Panel header={juizado} key={juizado}>
-                        <CustomTable
-                            columns={columns}
-                            dataSource={salas}
-                            rowKey="sala_virtual_id"
-                            pagination={false}
-                        />
-                    </Panel>
-                ))}
-            </Collapse>
+            <div className="table-container">
+                <Collapse>
+                    {Object.entries(groupedSalasVirtuais).map(([juizado, salas]) => (
+                        <Panel header={juizado} key={juizado}>
+                            <List
+                                itemLayout="horizontal"
+                                dataSource={salas}
+                                renderItem={sala => (
+                                    <List.Item
+                                        actions={[
+                                            <Tooltip title="Editar">
+                                                <Button
+                                                    type="default"
+                                                    icon={<EditOutlined />}
+                                                    onClick={() => handleEdit(sala)}
+                                                />
+                                            </Tooltip>,
+                                            <Tooltip title="Excluir">
+                                                <Popconfirm
+                                                    title="Tem certeza que deseja excluir esta sala virtual?"
+                                                    onConfirm={() => handleDelete(sala.sala_virtual_id)}
+                                                    okText="Sim"
+                                                    cancelText="Não"
+                                                >
+                                                    <Button
+                                                        type="danger"
+                                                        icon={<DeleteOutlined />}
+                                                    />
+                                                </Popconfirm>
+                                            </Tooltip>
+                                        ]}
+                                    >
+                                        <List.Item.Meta
+                                            title={sala.nome_sala_virtual}
+                                            description={
+                                                <>
+                                                    <p><strong>Tipo de Pauta:</strong> {sala.tipo_pauta}</p>
+                                                    <p><strong>Situação:</strong> {sala.situacao}</p>
+                                                </>
+                                            }
+                                        />
+                                    </List.Item>
+                                )}
+                            />
+                        </Panel>
+                    ))}
+                </Collapse>
+            </div>
             <Modal
                 title={editingSalaVirtual ? 'Editar Sala Virtual' : 'Adicionar Sala Virtual'}
                 visible={isModalVisible}

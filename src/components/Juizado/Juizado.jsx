@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Form, Input, Button, Select, Modal, message, Space } from 'antd';
+import { Form, Input, Button, Select, Modal, message, Space, Tooltip, Popconfirm, Collapse, Spin, List } from 'antd';
+import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { fetchJuizados, saveJuizado, deleteJuizado } from '../../services/juizadoService';
 import { fetchComarcas } from '../../services/comarcaService';
-import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import HeaderSection from '../common/HeaderSection';
 
 const { Option } = Select;
+const { Panel } = Collapse;
 
 const Juizado = () => {
     const [form] = Form.useForm();
@@ -14,6 +15,7 @@ const Juizado = () => {
     const [editingJuizado, setEditingJuizado] = useState(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [searchText, setSearchText] = useState('');
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         loadJuizados();
@@ -21,24 +23,31 @@ const Juizado = () => {
     }, []);
 
     const loadJuizados = async () => {
+        setLoading(true);
         try {
             const data = await fetchJuizados();
             setJuizados(data);
         } catch (error) {
             message.error('Erro ao carregar juizados');
+        } finally {
+            setLoading(false);
         }
     };
 
     const loadComarcas = async () => {
+        setLoading(true);
         try {
             const data = await fetchComarcas();
             setComarcas(data);
         } catch (error) {
             message.error('Erro ao carregar comarcas');
+        } finally {
+            setLoading(false);
         }
     };
 
     const handleFinish = async (values) => {
+        setLoading(true);
         try {
             await saveJuizado({ ...values, juizado_id: editingJuizado?.juizado_id });
             form.resetFields();
@@ -48,6 +57,8 @@ const Juizado = () => {
             message.success('Juizado salvo com sucesso');
         } catch (error) {
             message.error('Erro ao salvar juizado');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -58,12 +69,15 @@ const Juizado = () => {
     };
 
     const handleDelete = async (id) => {
+        setLoading(true);
         try {
             await deleteJuizado(id);
             loadJuizados();
             message.success('Juizado excluído com sucesso');
         } catch (error) {
             message.error('Erro ao excluir juizado');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -81,36 +95,14 @@ const Juizado = () => {
         juizado.nome_juizado.toLowerCase().includes(searchText)
     );
 
-    const columns = [
-        {
-            title: 'Comarca',
-            dataIndex: 'nome_comarca',
-            key: 'nome_comarca',
-        },
-        {
-            title: 'Nome do Juizado',
-            dataIndex: 'nome_juizado',
-            key: 'nome_juizado',
-        },
-        {
-            title: 'Ações',
-            key: 'actions',
-            render: (text, record) => (
-                <Space size="middle">
-                    <Button
-                        type="primary"
-                        icon={<EditOutlined />}
-                        onClick={() => handleEdit(record)}
-                    />
-                    <Button
-                        type="danger"
-                        icon={<DeleteOutlined />}
-                        onClick={() => handleDelete(record.juizado_id)}
-                    />
-                </Space>
-            ),
-        },
-    ];
+    const groupedJuizados = filteredJuizados.reduce((acc, juizado) => {
+        const comarca = juizado.nome_comarca;
+        if (!acc[comarca]) {
+            acc[comarca] = [];
+        }
+        acc[comarca].push(juizado);
+        return acc;
+    }, {});
 
     return (
         <div>
@@ -124,15 +116,60 @@ const Juizado = () => {
                     icon={<PlusOutlined />}
                     onClick={() => setIsModalVisible(true)}
                 >
-                    Adicionar Juizado
+                    Adicionar
                 </Button>
             </HeaderSection>
-            <Table columns={columns} dataSource={filteredJuizados} rowKey="juizado_id" />
+            <div className="table-container">
+                <Spin spinning={loading}>
+                    <Collapse>
+                        {Object.entries(groupedJuizados).map(([comarca, juizados]) => (
+                            <Panel header={comarca} key={comarca}>
+                                <List
+                                    itemLayout="horizontal"
+                                    dataSource={juizados}
+                                    renderItem={juizado => (
+                                        <List.Item
+                                            actions={[
+                                                <Tooltip title="Editar">
+                                                    <Button
+                                                        type="default"
+                                                        icon={<EditOutlined />}
+                                                        onClick={() => handleEdit(juizado)}
+                                                    />
+                                                </Tooltip>,
+                                                <Tooltip title="Excluir">
+                                                    <Popconfirm
+                                                        title="Tem certeza que deseja excluir este juizado?"
+                                                        onConfirm={() => handleDelete(juizado.juizado_id)}
+                                                        okText="Sim"
+                                                        cancelText="Não"
+                                                    >
+                                                        <Button
+                                                            type="danger"
+                                                            icon={<DeleteOutlined />}
+                                                        />
+                                                    </Popconfirm>
+                                                </Tooltip>
+                                            ]}
+                                        >
+                                            <List.Item.Meta
+                                                title={juizado.nome_juizado}
+                                            />
+                                        </List.Item>
+                                    )}
+                                />
+                            </Panel>
+                        ))}
+                    </Collapse>
+                </Spin>
+            </div>
             <Modal
                 title={editingJuizado ? 'Editar Juizado' : 'Adicionar Juizado'}
                 visible={isModalVisible}
                 onCancel={handleModalCancel}
                 footer={null}
+                style={{ top: 20 }}
+                bodyStyle={{ padding: '20px 40px' }}
             >
                 <Form form={form} layout="vertical" onFinish={handleFinish}>
                     <Form.Item

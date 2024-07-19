@@ -1,31 +1,37 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Table, message, Form } from 'antd';
+import { Button, message, Form, Spin } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
-import { fetchComarcas, saveComarca, deleteComarca } from '../../services/comarcaService'; // Caminho ajustado
+import { fetchComarcas, saveComarca, deleteComarca } from '../../services/comarcaService';
 import ComarcaModal from './ComarcaModal';
 import getTableColumnsComarca from './getTableColumnsComarca';
 import HeaderSection from '../common/HeaderSection';
+import CustomTable from '../common/CustomTable';
 
 const CadastroComarca = () => {
     const [comarcaList, setComarcaList] = useState([]);
     const [searchText, setSearchText] = useState('');
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [editingRecord, setEditingRecord] = useState(null);
+    const [loading, setLoading] = useState(false);
     const [form] = Form.useForm();
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const comarcaData = await fetchComarcas();
-                const sortedComarcas = comarcaData.sort((a, b) => a.nome_comarca.localeCompare(b.nome_comarca));
-                setComarcaList(sortedComarcas);
-            } catch (error) {
-                console.error('Erro ao buscar comarcas:', error);
-                message.error('Erro ao buscar comarcas. Tente novamente.');
-            }
-        };
-        fetchData();
+        loadComarcas();
     }, []);
+
+    const loadComarcas = async () => {
+        setLoading(true);
+        try {
+            const comarcaData = await fetchComarcas();
+            const sortedComarcas = comarcaData.sort((a, b) => a.nome_comarca.localeCompare(b.nome_comarca));
+            setComarcaList(sortedComarcas);
+        } catch (error) {
+            console.error('Erro ao buscar comarcas:', error);
+            message.error('Erro ao buscar comarcas. Tente novamente.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const showModal = (record = null) => {
         if (record) {
@@ -44,18 +50,13 @@ const CadastroComarca = () => {
     };
 
     const handleSubmit = async (values) => {
-        console.log('Valores do formulário enviados:', values);
         try {
             if (editingRecord) {
                 values.comarca_id = editingRecord.comarca_id;
             }
-
             const response = await saveComarca(values);
-            console.log('Resposta do servidor:', response);
             if (response.status === 200 || response.status === 201) {
-                const comarcaData = await fetchComarcas();
-                const sortedComarcas = comarcaData.sort((a, b) => a.nome_comarca.localeCompare(b.nome_comarca));
-                setComarcaList(sortedComarcas);
+                loadComarcas();
                 setIsModalVisible(false);
                 form.resetFields();
                 message.success(editingRecord ? 'Comarca atualizada com sucesso' : 'Comarca adicionada com sucesso');
@@ -71,9 +72,7 @@ const CadastroComarca = () => {
     const handleDelete = async (id) => {
         try {
             await deleteComarca(id);
-            const comarcaData = await fetchComarcas();
-            const sortedComarcas = comarcaData.sort((a, b) => a.nome_comarca.localeCompare(b.nome_comarca));
-            setComarcaList(sortedComarcas);
+            loadComarcas();
             message.success('Comarca excluída com sucesso');
         } catch (error) {
             console.error('Erro ao excluir comarca:', error);
@@ -103,27 +102,22 @@ const CadastroComarca = () => {
                 onSearch={handleSearch}
                 searchText={searchText}
             >
-                <Button 
-                    icon={<PlusOutlined />} 
-                    onClick={() => showModal(null)} 
+                <Button
+                    icon={<PlusOutlined />}
+                    onClick={() => showModal(null)}
                     type="primary"
-                    style={{ marginRight: 8 }}>
+                    style={{ marginRight: 8 }}
+                >
                     Adicionar
                 </Button>
             </HeaderSection>
-            <div className="table-container">
-                <Table 
-                    dataSource={filteredComarcas} 
-                    columns={columns} 
+            <Spin spinning={loading}>
+                <CustomTable
+                    dataSource={filteredComarcas}
+                    columns={columns}
                     rowKey="comarca_id"
-                    pagination={{
-                        pageSizeOptions: ['10', '20', '50', '100'],
-                        showSizeChanger: true,
-                        defaultPageSize: 10,
-                        showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} itens`
-                    }} 
                 />
-            </div>
+            </Spin>
             <ComarcaModal
                 isVisible={isModalVisible}
                 onCancel={handleCancel}

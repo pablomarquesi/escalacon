@@ -305,3 +305,47 @@ h1 {
 .login-form-button {
   width: 100%;
 }
+
+.table-container {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.ant-collapse {
+  background-color: #f8f9fa;
+}
+
+.ant-collapse-header {
+  font-weight: 600;
+  font-size: 14px; /* Reduzido o tamanho da fonte */
+}
+
+.ant-btn-primary {
+  background-color: #1890ff;
+  border-color: #1890ff;
+  border-radius: 4px;
+}
+
+.ant-btn-danger {
+  background-color: #ff4d4f;
+  border-color: #ff4d4f;
+  border-radius: 4px;
+}
+
+.ant-list-item {
+  padding: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.ant-list-item-meta-title {
+  font-size: 14px; /* Reduzido o tamanho da fonte */
+  font-weight: 600;
+}
+
+.ant-list-item-meta-description p {
+  margin-bottom: 0;
+  font-size: 12px; /* Reduzido o tamanho da fonte */
+}
