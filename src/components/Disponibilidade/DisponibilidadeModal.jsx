@@ -58,6 +58,8 @@ const DisponibilidadeModal = ({ form, isModalVisible, onFinish, onCancel, filter
         }
     };
 
+    const activeConciliadores = filteredConciliadores.filter(conciliador => conciliador.status_conciliador === 'Ativo');
+
     return (
         <Modal
             title={editingDisponibilidade ? 'Editar Disponibilidade' : 'Adicionar Disponibilidade'}
@@ -77,7 +79,7 @@ const DisponibilidadeModal = ({ form, isModalVisible, onFinish, onCancel, filter
                         onSearch={handleConciliadorSearch}
                         filterOption={false}
                     >
-                        {filteredConciliadores.map(conciliador => (
+                        {activeConciliadores.map(conciliador => (
                             <Option key={conciliador.conciliador_id} value={conciliador.conciliador_id}>
                                 {conciliador.nome_conciliador}
                             </Option>
