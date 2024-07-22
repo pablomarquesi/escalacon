@@ -1,9 +1,8 @@
-// ConciliadoresTable.jsx
 import React from 'react';
 import { Tooltip } from 'antd';
 
 const ConciliadoresTable = ({
-    currentConciliadores, diasDoMes, calendario, mes, ano, handleCellClick, isWeekend, getDayOfWeek, getFirstAndLastName
+    currentConciliadores, diasDoMes, mes, ano, handleCellClick, isWeekend, getDayOfWeek, getFirstAndLastName
 }) => (
     <div className="table-wrapper">
         <table>
@@ -26,18 +25,26 @@ const ConciliadoresTable = ({
                             {getFirstAndLastName(conciliador.nome_conciliador)}
                         </td>
                         {[...Array(diasDoMes).keys()].map(d => {
-                            const cell = calendario[conciliador.conciliador_id]?.[`${mes}-${d + 1}`];
+                            const dia = d + 1;
+                            const disponibilidade = conciliador.disponibilidades.find(disponibilidade => 
+                                new Date(disponibilidade.mes).getMonth() + 1 === mes && 
+                                new Date(disponibilidade.mes).getFullYear() === ano &&
+                                disponibilidade.dia_da_semana === getDayOfWeek(dia, mes, ano)
+                            );
+                            const cell = disponibilidade ? 'work' : '';
                             return (
-                                <Tooltip key={d + 1} title={cell ? '' : 'Inserir escala manual'}>
+                                <Tooltip key={dia} title={cell ? conciliador.nome_conciliador : 'Disponível'}>
                                     <td
-                                        className={`${cell || 'default'} ${isWeekend(d + 1, mes, ano) ? 'weekend' : ''}`}
-                                        onClick={() => handleCellClick(conciliador.conciliador_id, d + 1)}
+                                        className={`${cell || 'default'} ${isWeekend(dia, mes, ano) ? 'weekend' : ''}`}
+                                        onClick={() => handleCellClick(conciliador.conciliador_id, dia)}
                                         style={{
                                             cursor: 'pointer',
-                                            backgroundColor: cell === 'work' ? '#d0f0c0' : (isWeekend(d + 1, mes, ano) ? '#e0e0e0' : 'white'),
+                                            backgroundColor: cell === 'work' ? '#d0f0c0' : (isWeekend(dia, mes, ano) ? '#e0e0e0' : 'white'),
                                             position: 'relative'
                                         }}
-                                    ></td>
+                                    >
+                                        {cell && conciliador.nome_conciliador}
+                                    </td>
                                 </Tooltip>
                             );
                         })}
