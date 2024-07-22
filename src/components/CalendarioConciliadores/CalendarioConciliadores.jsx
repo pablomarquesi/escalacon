@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetchDisponibilidades, fetchSalasVirtuais, fetchJuizados } from '../../services/calendarioService';
-import { Row, Col, Pagination, Button, Modal, Form, Select, List } from 'antd';
+import { Row, Col, Pagination, Button, Modal, List } from 'antd';
 import CalendarNavigation from './CalendarNavigation';
 import ConciliadoresTable from './ConciliadoresTable';
 import './EscalaConciliadores.css';
@@ -21,7 +21,6 @@ const CalendarioConciliadores = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [form] = Form.useForm();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -125,8 +124,9 @@ const CalendarioConciliadores = () => {
         );
 
         // Distribuir salas
+        const shuffledSalas = [...salasVirtuais].sort(() => 0.5 - Math.random());
         const salasDistribuidas = filteredConciliadores.map((conciliador, index) => {
-            const sala = salasVirtuais[Math.floor(Math.random() * salasVirtuais.length)];
+            const sala = shuffledSalas[index % shuffledSalas.length];
             return {
                 ...conciliador,
                 sala: sala.nome_sala_virtual,
@@ -153,16 +153,18 @@ const CalendarioConciliadores = () => {
         <div className="calendario-container">
             <Row justify="space-between" align="middle" style={{ marginBottom: 20 }}>
                 <Col><h2 style={{ margin: 0 }}>Escala dos conciliadores</h2></Col>
+                <Col style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
+                    <CalendarNavigation 
+                        mes={mes} 
+                        ano={ano} 
+                        handlePrevMonth={handlePrevMonth} 
+                        handleNextMonth={handleNextMonth} 
+                    />
+                </Col>
                 <Col>
                     <Button type="primary" onClick={() => setIsModalVisible(true)}>Gerar escala</Button>
                 </Col>
             </Row>
-            <CalendarNavigation 
-                mes={mes} 
-                ano={ano} 
-                handlePrevMonth={handlePrevMonth} 
-                handleNextMonth={handleNextMonth} 
-            />
             <ConciliadoresTable
                 juizadosComSalas={juizadosComSalas}
                 diasDoMes={diasDoMes}

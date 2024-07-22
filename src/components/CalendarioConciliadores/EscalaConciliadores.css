@@ -29,7 +29,7 @@ th, td {
 
 th.conciliador-column, td.conciliador-column {
     width: 200px; /* Ajuste a largura conforme necessário */
-    text-align: left; /* Alinha o texto à esquerda */
+    text-align: right; /* Alinha o texto à direita */
 }
 
 th {
