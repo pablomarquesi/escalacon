@@ -187,6 +187,7 @@ const CalendarioConciliadores = () => {
                 visible={isModalVisible}
                 onCancel={() => setIsModalVisible(false)}
                 onOk={handleGenerateSchedule}
+                bodyStyle={{ maxHeight: '400px', overflowY: 'auto' }} // Ajustar altura do modal e adicionar rolagem
             >
                 <p>Total de conciliadores disponíveis: {filteredConciliadores.length}</p>
                 <List
