@@ -9,6 +9,7 @@
     border: 1px solid #ddd;
     padding: 10px;
     background-color: #fff;
+    margin-bottom: 20px; /* Espaço maior entre tabelas */
 }
 
 table {
@@ -21,12 +22,14 @@ table {
 
 th, td {
     border: 1px solid #ddd;
-    padding: 8px;
+    padding: 4px 8px; /* Reduzir o padding para diminuir a altura da linha */
     text-align: center;
+    line-height: 1.2; /* Reduzir a altura da linha */
 }
 
 th.conciliador-column, td.conciliador-column {
     width: 200px; /* Ajuste a largura conforme necessário */
+    text-align: left; /* Alinha o texto à esquerda */
 }
 
 th {
@@ -56,9 +59,24 @@ td:first-child {
 }
 
 .dia-semana {
-    font-size: 12px;
+    font-size: 11px; /* Reduzir o tamanho da fonte */
     color: #555;
     font-weight: normal;
+}
+
+.sala-nome {
+    font-size: 11px; /* Reduzir o tamanho da fonte */
+    color: #888;
+    font-weight: normal;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.conciliador-column .sala-nome {
+    display: block;
+    margin-top: 2px;
+    margin-bottom: 2px;
 }
 
 h2 {
@@ -67,9 +85,14 @@ h2 {
 
 h3 {
     margin: 0;
-    padding: 0 10px;
+    padding: 10px 0; /* Espaço entre o título e a tabela */
 }
 
 .modal-content p {
     margin-bottom: 10px;
+}
+
+.juizado-row {
+    background-color: #f0f0f0;
+    font-weight: bold;
 }

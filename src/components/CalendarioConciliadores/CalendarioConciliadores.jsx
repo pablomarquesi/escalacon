@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { fetchConciliadores } from '../../services/conciliadorService';
-import { fetchDisponibilidades, fetchSalasVirtuais } from '../../services/calendarioService';
-import { Row, Col, Pagination } from 'antd';
-import FilterBar from './FilterBar';
+import { fetchDisponibilidades, fetchSalasVirtuais, fetchJuizados } from '../../services/calendarioService';
+import { Row, Col, Pagination, Button, Modal, Form, Select, List } from 'antd';
 import CalendarNavigation from './CalendarNavigation';
 import ConciliadoresTable from './ConciliadoresTable';
-import './CalendarioConciliadores.css';
+import './EscalaConciliadores.css';
 
 const meses = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", 
@@ -16,25 +14,21 @@ const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 
 
 const CalendarioConciliadores = () => {
     const [conciliadores, setConciliadores] = useState([]);
-    const [comarcas, setComarcas] = useState([]); 
-    const [juizados, setJuizados] = useState([]); 
-    const [salasVirtuais, setSalasVirtuais] = useState([]); 
-    const [filteredJuizados, setFilteredJuizados] = useState([]); 
-    const [filteredSalasVirtuais, setFilteredSalasVirtuais] = useState([]); 
+    const [juizados, setJuizados] = useState([]);
+    const [salasVirtuais, setSalasVirtuais] = useState([]);
     const [mes, setMes] = useState(new Date().getMonth() + 1);
     const [ano, setAno] = useState(new Date().getFullYear());
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
-
-    const [comarca, setComarca] = useState(null);
-    const [juizado, setJuizado] = useState(null);
-    const [salaVirtual, setSalaVirtual] = useState(null);
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [form] = Form.useForm();
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const disponibilidadesData = await fetchDisponibilidades();
                 const salasVirtuaisData = await fetchSalasVirtuais();
+                const juizadosData = await fetchJuizados();
 
                 const conciliadoresDisponiveis = disponibilidadesData
                     .filter(disponibilidade => disponibilidade.status_disponibilidade === 'Ativo')
@@ -54,36 +48,13 @@ const CalendarioConciliadores = () => {
 
                 setConciliadores(conciliadoresDisponiveis);
                 setSalasVirtuais(salasVirtuaisData);
-
-                // Adicione fetchComarcas e fetchJuizados aqui se necessário
+                setJuizados(juizadosData);
             } catch (error) {
                 console.error('Erro ao buscar dados:', error);
             }
         };
         fetchData();
-    }, [mes, ano]);
-
-    const handleComarcaChange = (value) => {
-        setComarca(value);
-        setJuizado(null);
-        setSalaVirtual(null);
-
-        const filteredJuizados = juizados.filter(j => j.comarca_id === value);
-        setFilteredJuizados(filteredJuizados);
-        setFilteredSalasVirtuais([]);
-    };
-
-    const handleJuizadoChange = (value) => {
-        setJuizado(value);
-        setSalaVirtual(null);
-
-        const filteredSalasVirtuais = salasVirtuais.filter(sv => sv.juizado_id === value);
-        setFilteredSalasVirtuais(filteredSalasVirtuais);
-    };
-
-    const handleSalaVirtualChange = (value) => {
-        setSalaVirtual(value);
-    };
+    }, []);
 
     const handlePrevMonth = () => {
         if (mes === 1) {
@@ -143,37 +114,64 @@ const CalendarioConciliadores = () => {
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentConciliadores = filteredConciliadores.slice(indexOfFirstItem, indexOfLastItem);
 
+    const handleGenerateSchedule = async () => {
+        const selectedMes = `${ano}-${mes.toString().padStart(2, '0')}`;
+
+        // Filtrar conciliadores disponíveis no mês selecionado
+        const filteredConciliadores = conciliadores.filter(conciliador =>
+            conciliador.disponibilidades.some(disponibilidade =>
+                disponibilidade.mes === selectedMes
+            )
+        );
+
+        // Distribuir salas
+        const salasDistribuidas = filteredConciliadores.map((conciliador, index) => {
+            const sala = salasVirtuais[Math.floor(Math.random() * salasVirtuais.length)];
+            return {
+                ...conciliador,
+                sala: sala.nome_sala_virtual,
+                juizado_id: sala.juizado_id
+            };
+        });
+
+        setConciliadores(salasDistribuidas);
+        setIsModalVisible(false);
+    };
+
+    const juizadosComSalas = juizados.map(juizado => ({
+        ...juizado,
+        conciliadores: currentConciliadores.filter(conciliador => conciliador.juizado_id === juizado.juizado_id)
+    })).filter(juizado => juizado.conciliadores.length > 0);
+
+    const conciliadoresResumo = filteredConciliadores.map(conciliador => ({
+        nome: conciliador.nome_conciliador,
+        diasDisponiveis: conciliador.disponibilidades.length,
+        diasDaSemana: conciliador.disponibilidades.map(disponibilidade => disponibilidade.dia_da_semana).join(', ')
+    }));
+
     return (
         <div className="calendario-container">
             <Row justify="space-between" align="middle" style={{ marginBottom: 20 }}>
                 <Col><h2 style={{ margin: 0 }}>Escala dos conciliadores</h2></Col>
+                <Col>
+                    <Button type="primary" onClick={() => setIsModalVisible(true)}>Gerar escala</Button>
+                </Col>
             </Row>
-            <FilterBar 
-                comarca={comarca}
-                setComarca={handleComarcaChange}
-                comarcas={comarcas}
-                juizado={juizado}
-                setJuizado={handleJuizadoChange}
-                juizados={filteredJuizados} 
-                salaVirtual={salaVirtual}
-                setSalaVirtual={handleSalaVirtualChange}
-                salasVirtuais={filteredSalasVirtuais} 
-            />
             <CalendarNavigation 
                 mes={mes} 
                 ano={ano} 
                 handlePrevMonth={handlePrevMonth} 
                 handleNextMonth={handleNextMonth} 
             />
-            <ConciliadoresTable 
-                currentConciliadores={currentConciliadores} 
-                diasDoMes={diasDoMes} 
-                mes={mes} 
-                ano={ano} 
-                handleCellClick={() => {}} 
-                isWeekend={isWeekend} 
-                getDayOfWeek={getDayOfWeek} 
-                getFirstAndLastName={getFirstAndLastName} 
+            <ConciliadoresTable
+                juizadosComSalas={juizadosComSalas}
+                diasDoMes={diasDoMes}
+                mes={mes}
+                ano={ano}
+                handleCellClick={() => { }}
+                isWeekend={isWeekend}
+                getDayOfWeek={getDayOfWeek}
+                getFirstAndLastName={getFirstAndLastName}
             />
             <Pagination
                 current={currentPage}
@@ -182,6 +180,26 @@ const CalendarioConciliadores = () => {
                 onChange={handlePageChange}
                 style={{ marginTop: 20, textAlign: 'center' }}
             />
+            <Modal
+                title="Gerar escala"
+                visible={isModalVisible}
+                onCancel={() => setIsModalVisible(false)}
+                onOk={handleGenerateSchedule}
+            >
+                <p>Total de conciliadores disponíveis: {filteredConciliadores.length}</p>
+                <List
+                    itemLayout="horizontal"
+                    dataSource={conciliadoresResumo}
+                    renderItem={item => (
+                        <List.Item>
+                            <List.Item.Meta
+                                title={item.nome}
+                                description={`Dias disponíveis: ${item.diasDisponiveis}, Dias da semana: ${item.diasDaSemana}`}
+                            />
+                        </List.Item>
+                    )}
+                />
+            </Modal>
         </div>
     );
 };

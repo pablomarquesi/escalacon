@@ -21,3 +21,13 @@ export const fetchSalasVirtuais = async () => {
         throw error;
     }
 };
+
+export const fetchJuizados = async () => {
+    try {
+        const response = await axios.get(`${API_URL}/juizados`);
+        return response.data;
+    } catch (error) {
+        console.error('Erro ao buscar juizados:', error);
+        throw error;
+    }
+};
