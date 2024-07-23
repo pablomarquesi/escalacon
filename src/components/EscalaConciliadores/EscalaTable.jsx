@@ -1,7 +1,7 @@
 import React from 'react';
 import { Tooltip } from 'antd';
 
-const ConciliadoresTable = ({
+const EscalaTable = ({
     juizadosComSalas, diasDoMes, mes, ano, handleCellClick, isWeekend, getDayOfWeek, getFirstAndLastName
 }) => (
     <div className="table-wrapper">
@@ -66,4 +66,4 @@ const ConciliadoresTable = ({
     </div>
 );
 
-export default ConciliadoresTable;
+export default EscalaTable;

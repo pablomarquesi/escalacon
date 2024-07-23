@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { fetchDisponibilidades, fetchSalasVirtuais, fetchJuizados } from '../../services/calendarioService';
+import { fetchDisponibilidades, fetchSalasVirtuais, fetchJuizados } from '../../services/escalaService';
 import { Row, Col, Pagination, Button, Modal, List } from 'antd';
-import CalendarNavigation from './CalendarNavigation';
-import ConciliadoresTable from './ConciliadoresTable';
+import EscalaNavigation from './EscalaNavigation';
+import ConciliadoresTable from './EscalaTable';
 import './EscalaConciliadores.css';
 
 const meses = [
@@ -12,7 +12,7 @@ const meses = [
 
 const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
 
-const CalendarioConciliadores = () => {
+const EscalaConciliadores = () => {
     const [conciliadores, setConciliadores] = useState([]);
     const [juizados, setJuizados] = useState([]);
     const [salasVirtuais, setSalasVirtuais] = useState([]);
@@ -116,14 +116,12 @@ const CalendarioConciliadores = () => {
     const handleGenerateSchedule = async () => {
         const selectedMes = `${ano}-${mes.toString().padStart(2, '0')}`;
 
-        // Filtrar conciliadores disponíveis no mês selecionado
         const filteredConciliadores = conciliadores.filter(conciliador =>
             conciliador.disponibilidades.some(disponibilidade =>
                 disponibilidade.mes === selectedMes
             )
         );
 
-        // Distribuir salas
         const shuffledSalas = [...salasVirtuais].sort(() => 0.5 - Math.random());
         const salasDistribuidas = filteredConciliadores.map((conciliador, index) => {
             const sala = shuffledSalas[index % shuffledSalas.length];
@@ -145,7 +143,7 @@ const CalendarioConciliadores = () => {
 
     const conciliadoresResumo = filteredConciliadores.map(conciliador => ({
         nome: conciliador.nome_conciliador,
-        diasDisponiveis: conciliador.disponibilidades.length,
+        diasDisponiveis: conciliador.disponibilidades[0]?.quantidade_dias || 0,
         diasDaSemana: conciliador.disponibilidades.map(disponibilidade => disponibilidade.dia_da_semana).join(', ')
     }));
 
@@ -154,7 +152,7 @@ const CalendarioConciliadores = () => {
             <Row justify="space-between" align="middle" style={{ marginBottom: 20 }}>
                 <Col><h2 style={{ margin: 0 }}>Escala dos conciliadores</h2></Col>
                 <Col style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
-                    <CalendarNavigation 
+                    <EscalaNavigation 
                         mes={mes} 
                         ano={ano} 
                         handlePrevMonth={handlePrevMonth} 
@@ -187,9 +185,11 @@ const CalendarioConciliadores = () => {
                 visible={isModalVisible}
                 onCancel={() => setIsModalVisible(false)}
                 onOk={handleGenerateSchedule}
-                bodyStyle={{ maxHeight: '400px', overflowY: 'auto' }} // Ajustar altura do modal e adicionar rolagem
+                bodyStyle={{ maxHeight: '400px', overflowY: 'auto' }} 
             >
-                <p>Total de conciliadores disponíveis: {filteredConciliadores.length}</p>
+                <p>Total de conciliadores disponíveis no mês de {meses[mes - 1]}: {filteredConciliadores.length}</p>
+                <p>Quantidade de salas virtuais cadastradas: {salasVirtuais.length}</p>
+                <div style={{ marginBottom: '20px' }}></div>
                 <List
                     itemLayout="horizontal"
                     dataSource={conciliadoresResumo}
@@ -197,7 +197,12 @@ const CalendarioConciliadores = () => {
                         <List.Item>
                             <List.Item.Meta
                                 title={item.nome}
-                                description={`Dias disponíveis: ${item.diasDisponiveis}, Dias da semana: ${item.diasDaSemana}`}
+                                description={
+                                    <>
+                                        <div>Dias disponíveis: {item.diasDisponiveis}</div>
+                                        <div>Dias da semana: {item.diasDaSemana}</div>
+                                    </>
+                                }
                             />
                         </List.Item>
                     )}
@@ -207,4 +212,4 @@ const CalendarioConciliadores = () => {
     );
 };
 
-export default CalendarioConciliadores;
+export default EscalaConciliadores;

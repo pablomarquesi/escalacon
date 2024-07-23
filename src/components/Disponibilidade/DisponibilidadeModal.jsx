@@ -78,6 +78,7 @@ const DisponibilidadeModal = ({ form, isModalVisible, onFinish, onCancel, filter
                         placeholder="Selecione um conciliador"
                         onSearch={handleConciliadorSearch}
                         filterOption={false}
+                        value={form.getFieldValue('conciliador_id')}
                     >
                         {activeConciliadores.map(conciliador => (
                             <Option key={conciliador.conciliador_id} value={conciliador.conciliador_id}>
@@ -140,7 +141,7 @@ const DisponibilidadeModal = ({ form, isModalVisible, onFinish, onCancel, filter
                     label="Status"
                     rules={[{ required: true, message: 'Selecione um status' }]}
                 >
-                    <Select placeholder="Selecione um status">
+                    <Select placeholder="Selecione um status" value={form.getFieldValue('status_id')}>
                         {statuses.map(status => (
                             <Option key={status.status_id} value={status.status_id}>
                                 {status.nome_status}

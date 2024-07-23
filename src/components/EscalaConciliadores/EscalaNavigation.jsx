@@ -1,4 +1,3 @@
-// CalendarNavigation.jsx
 import React from 'react';
 import { Row, Button } from 'antd';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
@@ -7,7 +6,7 @@ const meses = [
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
 ];
 
-const CalendarNavigation = ({ mes, ano, handlePrevMonth, handleNextMonth }) => (
+const EscalaNavigation = ({ mes, ano, handlePrevMonth, handleNextMonth }) => (
     <Row justify="center" align="middle" style={{ marginBottom: 20 }}>
         <Button icon={<LeftOutlined />} onClick={handlePrevMonth} />
         <h3 style={{ margin: '0 10px' }}>{`${meses[mes - 1]} ${ano}`}</h3>
@@ -15,4 +14,4 @@ const CalendarNavigation = ({ mes, ano, handlePrevMonth, handleNextMonth }) => (
     </Row>
 );
 
-export default CalendarNavigation;
+export default EscalaNavigation;

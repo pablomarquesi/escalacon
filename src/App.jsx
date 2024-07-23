@@ -6,7 +6,7 @@ import MenuList from './components/MenuList';
 import CadastroConciliador from './components/Conciliadores/CadastroConciliador';
 import CadastroStatus from './components/Status/CadastroStatus';
 import CadastroComarca from './components/Comarca/CadastroComarca';
-import CalendarioConciliadores from './components/CalendarioConciliadores/CalendarioConciliadores';
+import EscalaConciliadores from './components/EscalaConciliadores/EscalaConciliadores';
 import Disponibilidade from "./components/Disponibilidade/Disponibilidade";
 import Dashboard from './components/Dashboard';
 import Juizado from "./components/Juizado/Juizado";
@@ -65,7 +65,7 @@ function App() {
               <Route path="/login" element={<Login onLogin={handleLogin} />} />
               <Route path="/" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />} />
               <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} />
-              <Route path="/escala" element={isAuthenticated ? <CalendarioConciliadores /> : <Navigate to="/login" />} />
+              <Route path="/escala" element={isAuthenticated ? <EscalaConciliadores /> : <Navigate to="/login" />} />
               <Route path="/cadastro/conciliador" element={isAuthenticated ? <CadastroConciliador /> : <Navigate to="/login" />} />
               <Route path="/cadastro/disponibilidade" element={isAuthenticated ? <Disponibilidade /> : <Navigate to="/login" />} />
               <Route path="/cadastro/status" element={isAuthenticated ? <CadastroStatus /> : <Navigate to="/login" />} />

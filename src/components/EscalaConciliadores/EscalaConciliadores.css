@@ -65,7 +65,7 @@ td:first-child {
 }
 
 .sala-nome {
-    font-size: 11px; /* Reduzir o tamanho da fonte */
+    font-size: 11px;
     color: #888;
     font-weight: normal;
     white-space: nowrap;
