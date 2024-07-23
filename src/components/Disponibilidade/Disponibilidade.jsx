@@ -23,6 +23,7 @@ const Disponibilidade = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [searchText, setSearchText] = useState("");
     const [pageSize, setPageSize] = useState(10);
+    const [selectedRowKeys, setSelectedRowKeys] = useState([]);
 
     useEffect(() => {
         loadDisponibilidades();
@@ -232,6 +233,13 @@ const Disponibilidade = () => {
         },
     ];
 
+    const rowSelection = {
+        selectedRowKeys,
+        onChange: (selectedRowKeys) => {
+            setSelectedRowKeys(selectedRowKeys);
+        }
+    };
+
     return (
         <div>
             <HeaderSection
@@ -246,7 +254,8 @@ const Disponibilidade = () => {
             <CustomTable 
                 columns={columns} 
                 dataSource={groupedDisponibilidades} 
-                rowKey="id" 
+                rowKey="id"
+                rowSelection={rowSelection} 
                 pagination={{ pageSize, onChange: (page, size) => setPageSize(size), showSizeChanger: true, pageSizeOptions: ['10', '20', '30', '40'] }}
             />
             <DisponibilidadeModal 

@@ -13,6 +13,7 @@ const CadastroComarca = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [editingRecord, setEditingRecord] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [selectedRowKeys, setSelectedRowKeys] = useState([]);
     const [form] = Form.useForm();
 
     useEffect(() => {
@@ -95,6 +96,13 @@ const CadastroComarca = () => {
 
     const columns = getTableColumnsComarca(showModal, handleDelete);
 
+    const rowSelection = {
+        selectedRowKeys,
+        onChange: (selectedRowKeys) => {
+            setSelectedRowKeys(selectedRowKeys);
+        }
+    };
+
     return (
         <>
             <HeaderSection
@@ -116,6 +124,7 @@ const CadastroComarca = () => {
                     dataSource={filteredComarcas}
                     columns={columns}
                     rowKey="comarca_id"
+                    rowSelection={rowSelection}
                 />
             </Spin>
             <ComarcaModal
