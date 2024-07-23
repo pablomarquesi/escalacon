@@ -45,23 +45,25 @@ function App() {
             collapsed={collapsed}
             collapsible
             trigger={null}
-            className='sidebar'>
-
+            className='sidebar'
+            style={{ height: '100vh', overflow: 'auto', position: 'fixed', left: 0 }}
+          >
             <MenuList collapsed={collapsed} />
           </Sider>
         )}
-        <Layout className="site-layout">
+        <Layout className="site-layout" style={{ marginLeft: isAuthenticated ? (collapsed ? 80 : 200) : 0 }}>
           {isAuthenticated && (
             <Header style={{ padding: 0 }} className='header'>
               <Button
                 type="text"
                 className="toggle"
                 onClick={() => setCollapsed(!collapsed)}
-                icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />} />
+                icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              />
               <UserMenu onLogout={handleLogout} />
             </Header>
           )}
-          <Content style={{ margin: '24px 16px', padding: 24, minHeight: 280 }}>
+          <div className='content'>
             <Routes>
               <Route path="/login" element={<Login onLogin={handleLogin} />} />
               <Route path="/" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />} />
@@ -76,7 +78,7 @@ function App() {
               <Route path="/locais/salavirtual" element={isAuthenticated ? <SalaVirtual /> : <Navigate to="/login" />} />
               <Route path="/configuracoes/usuarios" element={isAuthenticated ? <div>Usuários</div> : <Navigate to="/login" />} />
             </Routes>
-          </Content>
+          </div>
         </Layout>
       </Layout>
     </Router>

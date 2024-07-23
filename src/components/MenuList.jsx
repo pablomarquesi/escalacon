@@ -131,7 +131,7 @@ const MenuList = ({ collapsed }) => {
     ];
 
     return (
-        <div>
+        <div className="sidebar">
             <Logo collapsed={collapsed} />
             <Menu
                 theme="dark"
