@@ -14,7 +14,7 @@ export const fetchSalasVirtuais = async () => {
 
 export const fetchTiposPauta = async () => {
     try {
-        const response = await axios.get(`${API_URL}/tipospauta`);
+        const response = await axios.get(`${API_URL}/salasvirtuais/tipospauta`);
         return response.data;
     } catch (error) {
         console.error('Erro ao buscar tipos de pauta:', error);

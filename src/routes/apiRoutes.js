@@ -42,6 +42,7 @@ export function registerApiRoutes(app) {
 
     // Rotas para salas virtuais
     app.get('/api/salasvirtuais', fetchSalasVirtuais);
+    app.get('/api/salasvirtuais/tipospauta', fetchTiposPauta);
     app.post('/api/salasvirtuais', addSalaVirtual);
     app.put('/api/salasvirtuais/:id', updateSalaVirtual);
     app.delete('/api/salasvirtuais/:id', deleteSalaVirtual);
@@ -53,5 +54,5 @@ export function registerApiRoutes(app) {
     app.patch('/api/tipodepauta/:id', toggleTipoDePautaStatus);
 
     // Rota para tipos de pauta
-    app.get('/api/tipospauta', fetchTiposPauta);
+
 }
