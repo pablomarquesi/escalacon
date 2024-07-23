@@ -10,7 +10,8 @@ import {
     PushpinOutlined,
     VideoCameraOutlined,
     EnvironmentOutlined,
-    SettingOutlined
+    SettingOutlined,
+    FileOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import Logo from './Logo'; 
@@ -34,6 +35,9 @@ const MenuList = ({ collapsed }) => {
                 break;
             case 'status':
                 navigate('/cadastro/status');
+                break;
+            case 'tipodepauta':
+                navigate('/cadastro/tipodepauta');
                 break;
             case 'comarca':
                 navigate('/locais/comarca');
@@ -82,6 +86,11 @@ const MenuList = ({ collapsed }) => {
                     key: 'status',
                     icon: <CheckOutlined />,
                     label: 'Status'
+                },
+                {
+                    key: 'tipodepauta',
+                    icon: <FileOutlined />,
+                    label: 'Tipo de Pauta'
                 }
             ]
         },

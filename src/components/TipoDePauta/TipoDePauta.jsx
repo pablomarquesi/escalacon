@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, message, Form, Spin, Switch, Space, Tooltip, Popconfirm } from 'antd';
 import { PlusOutlined, EditOutlined } from '@ant-design/icons';
-import { fetchStatus, saveStatus, toggleStatus } from '../../services/statusService';
-import StatusModal from './StatusModal';
+import { fetchTiposDePauta, saveTipoDePauta, toggleTipoDePautaStatus } from '../../services/tipoDePautaService';
+import TipoDePautaModal from './TipoDePautaModal';
 import HeaderSection from '../common/HeaderSection';
 import CustomTable from '../common/CustomTable';
 
-const CadastroStatus = () => {
-    const [statusList, setStatusList] = useState([]);
-    const [filteredStatusList, setFilteredStatusList] = useState([]);
+const TipoDePauta = () => {
+    const [tipoDePautaList, setTipoDePautaList] = useState([]);
+    const [filteredTipoDePautaList, setFilteredTipoDePautaList] = useState([]);
     const [searchText, setSearchText] = useState('');
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [editingRecord, setEditingRecord] = useState(null);
@@ -17,19 +17,19 @@ const CadastroStatus = () => {
     const [form] = Form.useForm();
 
     useEffect(() => {
-        loadStatusList();
+        loadTipoDePautaList();
     }, []);
 
-    const loadStatusList = async () => {
+    const loadTipoDePautaList = async () => {
         setLoading(true);
         try {
-            const data = await fetchStatus();
-            const sortedData = data.sort((a, b) => a.nome_status.localeCompare(b.nome_status));
-            setStatusList(sortedData);
-            setFilteredStatusList(sortedData);
+            const data = await fetchTiposDePauta();
+            const sortedData = data.sort((a, b) => a.nome_pauta.localeCompare(b.nome_pauta));
+            setTipoDePautaList(sortedData);
+            setFilteredTipoDePautaList(sortedData);
         } catch (error) {
-            console.error('Erro ao buscar status:', error);
-            message.error('Erro ao buscar status. Tente novamente.');
+            console.error('Erro ao buscar tipos de pauta:', error);
+            message.error('Erro ao buscar tipos de pauta. Tente novamente.');
         } finally {
             setLoading(false);
         }
@@ -55,20 +55,21 @@ const CadastroStatus = () => {
     const handleSubmit = async (values) => {
         setLoading(true);
         try {
-            const statusData = {
-                nome_status: values.nome_status,
-                descricao_status: values.descricao_status,
-                ...(editingRecord ? { status_id: editingRecord.status_id } : {})
+            const tipoDePautaData = {
+                nome_pauta: values.nome_pauta,
+                descricao: values.descricao,
+                status: values.status,
+                ...(editingRecord ? { id: editingRecord.id } : {})
             };
 
-            await saveStatus(statusData);
-            loadStatusList();  
+            await saveTipoDePauta(tipoDePautaData);
+            loadTipoDePautaList();
             setIsModalVisible(false);
             form.resetFields();
-            message.success(editingRecord ? 'Status atualizado com sucesso' : 'Status adicionado com sucesso');
+            message.success(editingRecord ? 'Tipo de pauta atualizado com sucesso' : 'Tipo de pauta adicionado com sucesso');
         } catch (error) {
-            console.error('Erro ao salvar status:', error);
-            message.error('Erro ao salvar status. Verifique os dados e tente novamente.');
+            console.error('Erro ao salvar tipo de pauta:', error);
+            message.error('Erro ao salvar tipo de pauta. Verifique os dados e tente novamente.');
         } finally {
             setLoading(false);
         }
@@ -77,8 +78,8 @@ const CadastroStatus = () => {
     const handleToggleStatus = async (id, currentStatus) => {
         setLoading(true);
         try {
-            await toggleStatus(id, currentStatus);
-            loadStatusList();
+            await toggleTipoDePautaStatus(id, currentStatus);
+            loadTipoDePautaList();
             message.success('Status alterado com sucesso');
         } catch (error) {
             console.error('Erro ao alterar status:', error);
@@ -92,23 +93,23 @@ const CadastroStatus = () => {
         const value = e.target.value.toLowerCase();
         setSearchText(value);
 
-        const filtered = statusList.filter(status =>
-            status.nome_status.toLowerCase().includes(value)
+        const filtered = tipoDePautaList.filter(tipoDePauta =>
+            tipoDePauta.nome_pauta.toLowerCase().includes(value)
         );
-        setFilteredStatusList(filtered);
+        setFilteredTipoDePautaList(filtered);
     };
 
     const columns = [
         {
-            title: 'Nome do Status',
-            dataIndex: 'nome_status',
-            key: 'nome_status',
+            title: 'Nome do Tipo de Pauta',
+            dataIndex: 'nome_pauta',
+            key: 'nome_pauta',
             align: 'left',
         },
         {
             title: 'Descrição',
-            dataIndex: 'descricao_status',
-            key: 'descricao_status',
+            dataIndex: 'descricao',
+            key: 'descricao',
             align: 'left',
         },
         {
@@ -123,8 +124,8 @@ const CadastroStatus = () => {
                         onClick={() => showModal(record)}
                     />
                     <Popconfirm
-                        title={`Tem certeza que deseja ${record.status === 'Ativo' ? 'inativar' : 'ativar'} este status?`}
-                        onConfirm={() => handleToggleStatus(record.status_id, record.status)}
+                        title={`Tem certeza que deseja ${record.status === 'Ativo' ? 'inativar' : 'ativar'} este tipo de pauta?`}
+                        onConfirm={() => handleToggleStatus(record.id, record.status)}
                         okText="Sim"
                         cancelText="Não"
                     >
@@ -149,7 +150,7 @@ const CadastroStatus = () => {
     return (
         <div>
             <HeaderSection
-                title="Relação de Status"
+                title="Relação de Tipos de Pauta"
                 onSearch={handleSearch}
                 searchText={searchText}
             >
@@ -163,9 +164,9 @@ const CadastroStatus = () => {
             </HeaderSection>
             <Spin spinning={loading}>
                 <CustomTable 
-                    dataSource={filteredStatusList} 
+                    dataSource={filteredTipoDePautaList} 
                     columns={columns} 
-                    rowKey="status_id"
+                    rowKey="id"
                     rowSelection={rowSelection}
                     pagination={{
                         pageSizeOptions: ['10', '20', '50', '100'],
@@ -175,7 +176,7 @@ const CadastroStatus = () => {
                     }} 
                 />
             </Spin>
-            <StatusModal
+            <TipoDePautaModal
                 isVisible={isModalVisible}
                 onCancel={handleCancel}
                 onSubmit={handleSubmit}
@@ -185,4 +186,4 @@ const CadastroStatus = () => {
     );
 };
 
-export default CadastroStatus;
+export default TipoDePauta;

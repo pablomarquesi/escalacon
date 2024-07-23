@@ -11,6 +11,7 @@ import Disponibilidade from "./components/Disponibilidade/Disponibilidade";
 import Dashboard from './components/Dashboard';
 import Juizado from "./components/Juizado/Juizado";
 import SalaVirtual from "./components/SalaVirtual/SalaVirtual";
+import TipoDePauta from "./components/TipoDePauta/TipoDePauta";
 import UserMenu from './components/UserMenu/UserMenu';
 import Login from './components/Login/Login';
 import './index.css';
@@ -69,6 +70,7 @@ function App() {
               <Route path="/cadastro/conciliador" element={isAuthenticated ? <CadastroConciliador /> : <Navigate to="/login" />} />
               <Route path="/cadastro/disponibilidade" element={isAuthenticated ? <Disponibilidade /> : <Navigate to="/login" />} />
               <Route path="/cadastro/status" element={isAuthenticated ? <CadastroStatus /> : <Navigate to="/login" />} />
+              <Route path="/cadastro/tipodepauta" element={isAuthenticated ? <TipoDePauta /> : <Navigate to="/login" />} />
               <Route path="/locais/comarca" element={isAuthenticated ? <CadastroComarca /> : <Navigate to="/login" />} />
               <Route path="/locais/juizado" element={isAuthenticated ? <Juizado /> : <Navigate to="/login" />} />
               <Route path="/locais/salavirtual" element={isAuthenticated ? <SalaVirtual /> : <Navigate to="/login" />} />

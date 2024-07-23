@@ -1,6 +1,5 @@
 import db from '../config/database.js';
 
-// Função para buscar todos os status
 export async function fetchStatus(req, res) {
     try {
         const [status] = await db.query('SELECT status_id, nome_status, descricao_status, status FROM status ORDER BY nome_status ASC');
@@ -14,10 +13,8 @@ export async function fetchStatus(req, res) {
 export async function addStatus(req, res) {
     const { nome_status, descricao_status } = req.body;
 
-    // Log dos dados recebidos
     console.log('Dados recebidos no backend:', req.body);
 
-    // Validação básica
     if (!nome_status || !descricao_status) {
         return res.status(400).json({ error: 'Nome do status e descrição são obrigatórios.' });
     }
@@ -29,7 +26,7 @@ export async function addStatus(req, res) {
         `, [nome_status, descricao_status]);
 
         if (result[0].affectedRows > 0) {
-            res.status(201).end(); // Não enviar mensagem de sucesso
+            res.status(201).end();
         } else {
             res.status(400).json({ message: "Não foi possível adicionar o status." });
         }
@@ -43,7 +40,6 @@ export async function updateStatus(req, res) {
     const { id } = req.params;
     const { nome_status, descricao_status } = req.body;
 
-    // Validação básica
     if (!nome_status || !descricao_status) {
         return res.status(400).json({ error: 'Nome do status e descrição são obrigatórios.' });
     }
@@ -66,7 +62,6 @@ export async function updateStatus(req, res) {
     }
 }
 
-// Função para excluir um status
 export async function deleteStatus(req, res) {
     const { id } = req.params;
     try {

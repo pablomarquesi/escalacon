@@ -4,6 +4,7 @@ import { addDisponibilidade, fetchDisponibilidades, toggleDisponibilidadeStatus 
 import { addComarca, deleteComarca, fetchComarcas, updateComarca } from '../controllers/comarcaController.js';
 import { fetchJuizados, addJuizado, updateJuizado, deleteJuizado } from '../controllers/juizadoController.js';
 import { fetchSalasVirtuais, addSalaVirtual, updateSalaVirtual, deleteSalaVirtual, fetchTiposPauta } from '../controllers/salaVirtualController.js';
+import { addTipoDePauta, fetchTiposDePauta, updateTipoDePauta, toggleTipoDePautaStatus } from '../controllers/tipoDePautaController.js';
 
 export function registerApiRoutes(app) {
     app.get('/testdb', testDbConnection);
@@ -45,6 +46,8 @@ export function registerApiRoutes(app) {
     app.put('/api/salasvirtuais/:id', updateSalaVirtual);
     app.delete('/api/salasvirtuais/:id', deleteSalaVirtual);
 
-    // Rota para tipos de pauta
-    app.get('/api/tipospauta', fetchTiposPauta);
+    app.get('/api/tipodepauta', fetchTiposDePauta);
+    app.post('/api/tipodepauta', addTipoDePauta);
+    app.put('/api/tipodepauta/:id', updateTipoDePauta);
+    app.patch('/api/tipodepauta/:id', toggleTipoDePautaStatus);
 }
