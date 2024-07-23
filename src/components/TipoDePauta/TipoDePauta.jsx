@@ -105,12 +105,14 @@ const TipoDePauta = () => {
             dataIndex: 'nome_pauta',
             key: 'nome_pauta',
             align: 'left',
+            sorter: (a, b) => (a.nome_pauta || "").toString().localeCompare((b.nome_pauta || "").toString()),
         },
         {
             title: 'Descrição',
             dataIndex: 'descricao',
             key: 'descricao',
             align: 'left',
+            sorter: (a, b) => (a.descricao || "").toString().localeCompare((b.descricao || "").toString()),
         },
         {
             title: 'Ações',

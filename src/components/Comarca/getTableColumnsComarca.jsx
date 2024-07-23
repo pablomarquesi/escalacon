@@ -13,6 +13,7 @@ const getTableColumnsComarca = (onEdit, onDelete) => [
     title: 'Nome da Comarca',
     dataIndex: 'nome_comarca',
     key: 'nome_comarca',
+    align: 'left',
     sorter: (a, b) => (a.nome_comarca || "").toString().localeCompare((b.nome_comarca || "").toString()),
   },
   {
