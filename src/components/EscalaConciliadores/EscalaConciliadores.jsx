@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { fetchDisponibilidades, fetchSalasVirtuais, fetchJuizados } from '../../services/escalaService';
 import { Row, Col, Pagination, Button, Modal, List } from 'antd';
 import EscalaNavigation from './EscalaNavigation';
-import ConciliadoresTable from './EscalaTable';
+import EscalaTable from './EscalaTable';
 import './EscalaConciliadores.css';
 
 const meses = [
@@ -113,24 +113,47 @@ const EscalaConciliadores = () => {
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentConciliadores = filteredConciliadores.slice(indexOfFirstItem, indexOfLastItem);
 
-    const handleGenerateSchedule = async () => {
-        const selectedMes = `${ano}-${mes.toString().padStart(2, '0')}`;
-
-        const filteredConciliadores = conciliadores.filter(conciliador =>
-            conciliador.disponibilidades.some(disponibilidade =>
-                disponibilidade.mes === selectedMes
-            )
-        );
-
+    const handleGenerateSchedule = () => {
         const shuffledSalas = [...salasVirtuais].sort(() => 0.5 - Math.random());
         const salasDistribuidas = filteredConciliadores.map((conciliador, index) => {
             const sala = shuffledSalas[index % shuffledSalas.length];
+            const novasDisponibilidades = conciliador.disponibilidades.map(disponibilidade => {
+                const dia = disponibilidade.dia_da_semana;
+                let dayOfWeek;
+                switch (dia) {
+                    case 'Segunda': dayOfWeek = 1; break;
+                    case 'Terça': dayOfWeek = 2; break;
+                    case 'Quarta': dayOfWeek = 3; break;
+                    case 'Quinta': dayOfWeek = 4; break;
+                    case 'Sexta': dayOfWeek = 5; break;
+                    default: dayOfWeek = -1;
+                }
+
+                const data = new Date(ano, mes - 1, 1);
+                const datas = [];
+                while (data.getMonth() === mes - 1) {
+                    if (data.getDay() === dayOfWeek) {
+                        datas.push(data.toISOString().split('T')[0]); // YYYY-MM-DD
+                    }
+                    data.setDate(data.getDate() + 1);
+                }
+
+                return datas.map(data => ({
+                    ...disponibilidade,
+                    data,
+                    sala: sala.nome_sala_virtual,
+                    juizado_id: sala.juizado_id
+                }));
+            }).flat();
+
             return {
                 ...conciliador,
                 sala: sala.nome_sala_virtual,
-                juizado_id: sala.juizado_id
+                disponibilidades: novasDisponibilidades
             };
         });
+
+        console.log('Salas Distribuídas:', salasDistribuidas);
 
         setConciliadores(salasDistribuidas);
         setIsModalVisible(false);
@@ -138,7 +161,7 @@ const EscalaConciliadores = () => {
 
     const juizadosComSalas = juizados.map(juizado => ({
         ...juizado,
-        conciliadores: currentConciliadores.filter(conciliador => conciliador.juizado_id === juizado.juizado_id)
+        conciliadores: currentConciliadores.filter(conciliador => conciliador.disponibilidades.some(d => d.juizado_id === juizado.juizado_id))
     })).filter(juizado => juizado.conciliadores.length > 0);
 
     const conciliadoresResumo = filteredConciliadores.map(conciliador => ({
@@ -146,6 +169,8 @@ const EscalaConciliadores = () => {
         diasDisponiveis: conciliador.disponibilidades[0]?.quantidade_dias || 0,
         diasDaSemana: conciliador.disponibilidades.map(disponibilidade => disponibilidade.dia_da_semana).join(', ')
     }));
+
+    console.log('Conciliadores:', conciliadores);
 
     return (
         <div className="calendario-container">
@@ -163,7 +188,7 @@ const EscalaConciliadores = () => {
                     <Button type="primary" onClick={() => setIsModalVisible(true)}>Gerar escala</Button>
                 </Col>
             </Row>
-            <ConciliadoresTable
+            <EscalaTable
                 juizadosComSalas={juizadosComSalas}
                 diasDoMes={diasDoMes}
                 mes={mes}

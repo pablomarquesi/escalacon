@@ -1,3 +1,4 @@
+/* EscalaConciliadores.css */
 .calendario-container {
     overflow-x: hidden;
     margin: 20px;
@@ -9,7 +10,7 @@
     border: 1px solid #ddd;
     padding: 10px;
     background-color: #fff;
-    margin-bottom: 20px; /* Espaço maior entre tabelas */
+    margin-bottom: 20px;
 }
 
 table {
@@ -22,14 +23,14 @@ table {
 
 th, td {
     border: 1px solid #ddd;
-    padding: 4px 8px; /* Reduzir o padding para diminuir a altura da linha */
+    padding: 4px 8px;
     text-align: center;
-    line-height: 1.2; /* Reduzir a altura da linha */
+    line-height: 1.2;
 }
 
 th.conciliador-column, td.conciliador-column {
-    width: 200px; /* Ajuste a largura conforme necessário */
-    text-align: right; /* Alinha o texto à direita */
+    width: 200px;
+    text-align: right;
 }
 
 th {
@@ -51,15 +52,15 @@ td:first-child {
 }
 
 .work {
-    background-color: #d0f0c0; /* Verde mais claro */
+    background-color: #d0f0c0;
 }
 
 .weekend {
-    background-color: #e0e0e0; /* Cinza mais claro */
+    background-color: #e0e0e0;
 }
 
 .dia-semana {
-    font-size: 11px; /* Reduzir o tamanho da fonte */
+    font-size: 11px;
     color: #555;
     font-weight: normal;
 }
@@ -85,7 +86,7 @@ h2 {
 
 h3 {
     margin: 0;
-    padding: 10px 0; /* Espaço entre o título e a tabela */
+    padding: 10px 0;
 }
 
 .modal-content p {
