@@ -117,7 +117,9 @@ const EscalaConciliadores = () => {
         const shuffledSalas = [...salasVirtuais].sort(() => 0.5 - Math.random());
         const salasDistribuidas = filteredConciliadores.map((conciliador, index) => {
             const sala = shuffledSalas[index % shuffledSalas.length];
-            const novasDisponibilidades = conciliador.disponibilidades.map(disponibilidade => {
+            const novasDisponibilidades = [];
+
+            conciliador.disponibilidades.forEach(disponibilidade => {
                 const dia = disponibilidade.dia_da_semana;
                 let dayOfWeek;
                 switch (dia) {
@@ -130,26 +132,26 @@ const EscalaConciliadores = () => {
                 }
 
                 const data = new Date(ano, mes - 1, 1);
-                const datas = [];
-                while (data.getMonth() === mes - 1) {
+                let count = 0;
+
+                while (data.getMonth() === mes - 1 && count < disponibilidade.quantidade_dias) {
                     if (data.getDay() === dayOfWeek) {
-                        datas.push(data.toISOString().split('T')[0]); // YYYY-MM-DD
+                        novasDisponibilidades.push({
+                            ...disponibilidade,
+                            data: data.toISOString().split('T')[0], // YYYY-MM-DD
+                            sala: sala.nome_sala_virtual,
+                            juizado_id: sala.juizado_id
+                        });
+                        count++;
                     }
                     data.setDate(data.getDate() + 1);
                 }
-
-                return datas.map(data => ({
-                    ...disponibilidade,
-                    data,
-                    sala: sala.nome_sala_virtual,
-                    juizado_id: sala.juizado_id
-                }));
-            }).flat();
+            });
 
             return {
                 ...conciliador,
                 sala: sala.nome_sala_virtual,
-                disponibilidades: novasDisponibilidades
+                disponibilidades: novasDisponibilidades.slice(0, conciliador.disponibilidades[0].quantidade_dias)
             };
         });
 
