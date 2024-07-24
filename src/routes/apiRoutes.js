@@ -53,6 +53,4 @@ export function registerApiRoutes(app) {
     app.put('/api/tipodepauta/:id', updateTipoDePauta);
     app.patch('/api/tipodepauta/:id', toggleTipoDePautaStatus);
 
-    // Rota para tipos de pauta
-
 }
