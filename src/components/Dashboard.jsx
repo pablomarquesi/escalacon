@@ -28,16 +28,16 @@ const Dashboard = () => {
     try {
       const response = await axios.get('http://localhost:3000/api/conciliadores', { params: { filter } });
       const data = response.data.reduce((acc, conciliador) => {
-        const month = moment(conciliador.data_credenciamento).format('YYYY-MM');
-        if (!acc[month]) {
-          acc[month] = 0;
+        const quarter = moment(conciliador.data_credenciamento).startOf('quarter').format('YYYY-[Q]Q');
+        if (!acc[quarter]) {
+          acc[quarter] = 0;
         }
-        acc[month]++;
+        acc[quarter]++;
         return acc;
       }, {});
       const chartData = Object.keys(data)
         .sort()
-        .map(key => ({ month: key, value: data[key] }));
+        .map(key => ({ quarter: key, value: data[key] }));
       setCredenciamentoData(chartData);
     } catch (error) {
       console.error('Erro ao buscar dados de credenciamento:', error);
@@ -132,13 +132,13 @@ const Dashboard = () => {
 
   const credenciamentoConfig = {
     data: credenciamentoData,
-    xField: 'month',
+    xField: 'quarter',
     yField: 'value',
     xAxis: {
       type: 'cat',
-      title: { text: 'Mês e Ano' },
+      title: { text: 'Trimestre' },
       label: {
-        formatter: (v) => moment(v, 'YYYY-MM').format('MMM YYYY'), // Formata o mês e ano no eixo x
+        formatter: (v) => moment(v, 'YYYY-[Q]Q').format('[Q]Q YYYY'), // Formata o trimestre no eixo x
       },
     },
     yAxis: {
@@ -148,13 +148,13 @@ const Dashboard = () => {
       title: { text: 'Quantidade de Credenciamentos' },
     },
     tooltip: {
-      fields: ['month', 'value'],
+      fields: ['quarter', 'value'],
       formatter: datum => ({
         name: 'Credenciamentos',
         value: datum.value,
       }),
     },
-    smooth: true,
+    smooth: true, // Adiciona suavização para curvas arredondadas
     height: 400, // Define a altura do gráfico
   };
 
@@ -255,7 +255,7 @@ const Dashboard = () => {
       </Row>
       <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
         <Col xs={24} lg={8}>
-          <Card title="Credenciamentos por Mês" bordered={false} className="large-card">
+          <Card title="Credenciamentos por Trimestre" bordered={false} className="large-card">
             <Line {...credenciamentoConfig} />
           </Card>
         </Col>
