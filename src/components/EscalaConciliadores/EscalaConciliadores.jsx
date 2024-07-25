@@ -92,12 +92,9 @@ const EscalaConciliadores = () => {
         return diasSemana[date.getDay()];
     };
 
-    const getFirstAndLastName = (fullName) => {
+    const getFirstName = (fullName) => {
         const names = fullName.split(' ');
-        if (names.length > 1) {
-            return `${names[0]} ${names[names.length - 1]}`;
-        }
-        return fullName;
+        return names[0];
     };
 
     const diasDoMes = getDaysInMonth(mes, ano);
@@ -115,11 +112,9 @@ const EscalaConciliadores = () => {
 
     const handleGenerateSchedule = () => {
         const shuffledSalas = [...salasVirtuais].sort(() => 0.5 - Math.random());
-        const salasDistribuidas = filteredConciliadores.map((conciliador, index) => {
-            const sala = shuffledSalas[index % shuffledSalas.length];
-            const novasDisponibilidades = [];
-
-            conciliador.disponibilidades.forEach(disponibilidade => {
+        const salasDistribuidas = shuffledSalas.map((sala, index) => {
+            const conciliador = filteredConciliadores[index % filteredConciliadores.length];
+            const novasDisponibilidades = conciliador.disponibilidades.map(disponibilidade => {
                 const dia = disponibilidade.dia_da_semana;
                 let dayOfWeek;
                 switch (dia) {
@@ -132,26 +127,26 @@ const EscalaConciliadores = () => {
                 }
 
                 const data = new Date(ano, mes - 1, 1);
-                let count = 0;
-
-                while (data.getMonth() === mes - 1 && count < disponibilidade.quantidade_dias) {
+                const datas = [];
+                while (data.getMonth() === mes - 1) {
                     if (data.getDay() === dayOfWeek) {
-                        novasDisponibilidades.push({
-                            ...disponibilidade,
-                            data: data.toISOString().split('T')[0], // YYYY-MM-DD
-                            sala: sala.nome_sala_virtual,
-                            juizado_id: sala.juizado_id
-                        });
-                        count++;
+                        datas.push(data.toISOString().split('T')[0]); // YYYY-MM-DD
                     }
                     data.setDate(data.getDate() + 1);
                 }
-            });
+
+                return datas.map(data => ({
+                    ...disponibilidade,
+                    data,
+                    sala: sala.nome_sala_virtual,
+                    juizado_id: sala.juizado_id
+                }));
+            }).flat().slice(0, conciliador.disponibilidades[0].quantidade_dias); // respeita o limite de dias
 
             return {
                 ...conciliador,
-                sala: sala.nome_sala_virtual,
-                disponibilidades: novasDisponibilidades.slice(0, conciliador.disponibilidades[0].quantidade_dias)
+                disponibilidades: novasDisponibilidades,
+                sala: sala.nome_sala_virtual
             };
         });
 
@@ -163,8 +158,8 @@ const EscalaConciliadores = () => {
 
     const juizadosComSalas = juizados.map(juizado => ({
         ...juizado,
-        conciliadores: currentConciliadores.filter(conciliador => conciliador.disponibilidades.some(d => d.juizado_id === juizado.juizado_id))
-    })).filter(juizado => juizado.conciliadores.length > 0);
+        salas: salasVirtuais.filter(sala => sala.juizado_id === juizado.juizado_id)
+    }));
 
     const conciliadoresResumo = filteredConciliadores.map(conciliador => ({
         nome: conciliador.nome_conciliador,
@@ -198,7 +193,7 @@ const EscalaConciliadores = () => {
                 handleCellClick={() => { }}
                 isWeekend={isWeekend}
                 getDayOfWeek={getDayOfWeek}
-                getFirstAndLastName={getFirstAndLastName}
+                getFirstName={getFirstName}
             />
             <Pagination
                 current={currentPage}
