@@ -1,12 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { Form, Input, Button, Select, Modal, message, Space, Collapse, List, Tooltip, Popconfirm } from 'antd';
-import { fetchSalasVirtuais, saveSalaVirtual, deleteSalaVirtual, fetchTiposPauta } from '../../services/salaVirtualService';
+import { Form, Input, Button, Select, Modal, message, Space, Collapse, List, Tooltip, Popconfirm, Switch, Checkbox } from 'antd';
+import { fetchSalasVirtuais, saveSalaVirtual, toggleSalaVirtualStatus, fetchTiposPauta } from '../../services/salaVirtualService';
 import { fetchJuizados } from '../../services/juizadoService';
-import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { EditOutlined, PlusOutlined } from '@ant-design/icons';
 import HeaderSection from '../common/HeaderSection';
 
 const { Option } = Select;
 const { Panel } = Collapse;
+
+const diasDaSemanaOptions = [
+    { label: 'Segundas', value: 2 },
+    { label: 'Terças', value: 3 },
+    { label: 'Quartas', value: 4 },
+    { label: 'Quintas', value: 5 },
+    { label: 'Sextas', value: 6 },
+];
 
 const SalaVirtual = () => {
     const [form] = Form.useForm();
@@ -67,18 +75,21 @@ const SalaVirtual = () => {
         setEditingSalaVirtual(record);
         form.setFieldsValue({
             ...record,
-            tipo_pauta_id: tiposPauta.find(tipo => tipo.nome_pauta === record.tipo_pauta)?.id
+            tipo_pauta_id: tiposPauta.find(tipo => tipo.nome_pauta === record.tipo_pauta)?.id,
+            dias_funcionamento: record.nome_dia.split(', ').map(dia => diasDaSemanaOptions.find(option => option.label.startsWith(dia)).value),
         });
         setIsModalVisible(true);
     };
 
-    const handleDelete = async (id) => {
+    const handleToggleStatus = async (id, currentStatus) => {
+        const newStatus = currentStatus === 'Ativo' ? 'Inativo' : 'Ativo';
         try {
-            await deleteSalaVirtual(id);
+            await toggleSalaVirtualStatus(id, newStatus);
+            message.success(`Sala virtual ${newStatus === 'Ativo' ? 'ativada' : 'inativada'} com sucesso`);
             loadSalasVirtuais();
-            message.success('Sala virtual excluída com sucesso');
         } catch (error) {
-            message.error('Erro ao excluir sala virtual');
+            console.error('Erro ao alterar status da sala virtual:', error);
+            message.error(`Erro ao ${newStatus === 'Ativo' ? 'ativar' : 'inativar'} sala virtual`);
         }
     };
 
@@ -137,16 +148,15 @@ const SalaVirtual = () => {
                                                     onClick={() => handleEdit(sala)}
                                                 />
                                             </Tooltip>,
-                                            <Tooltip title="Excluir">
+                                            <Tooltip title={sala.status_sala_virtual === 'Ativo' ? 'Inativar' : 'Ativar'}>
                                                 <Popconfirm
-                                                    title="Tem certeza que deseja excluir esta sala virtual?"
-                                                    onConfirm={() => handleDelete(sala.sala_virtual_id)}
+                                                    title={`Tem certeza que deseja ${sala.status_sala_virtual === 'Ativo' ? 'inativar' : 'ativar'} esta sala virtual?`}
+                                                    onConfirm={() => handleToggleStatus(sala.sala_virtual_id, sala.status_sala_virtual)}
                                                     okText="Sim"
                                                     cancelText="Não"
                                                 >
-                                                    <Button
-                                                        type="danger"
-                                                        icon={<DeleteOutlined />}
+                                                    <Switch
+                                                        checked={sala.status_sala_virtual === 'Ativo'}
                                                     />
                                                 </Popconfirm>
                                             </Tooltip>
@@ -158,7 +168,8 @@ const SalaVirtual = () => {
                                                 <>
                                                     <p>
                                                         <strong>Tipo de Pauta:</strong> {sala.tipo_pauta} | 
-                                                        <strong> Situação:</strong> {sala.situacao}
+                                                        <strong> Situação:</strong> {sala.situacao} | 
+                                                        <strong> Dias de Funcionamento:</strong> {sala.nome_dia}
                                                     </p>
                                                 </>
                                             }
@@ -222,6 +233,13 @@ const SalaVirtual = () => {
                         rules={[{ required: true, message: 'Por favor, insira a situação' }]}
                     >
                         <Input />
+                    </Form.Item>
+                    <Form.Item
+                        name="dias_funcionamento"
+                        label="Dias da Semana"
+                        rules={[{ required: true, message: 'Por favor, selecione os dias de funcionamento' }]}
+                    >
+                        <Checkbox.Group options={diasDaSemanaOptions} />
                     </Form.Item>
                     <Form.Item>
                         <Space>

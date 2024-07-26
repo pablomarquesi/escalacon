@@ -34,12 +34,12 @@ export const saveSalaVirtual = async (salaVirtual) => {
     }
 };
 
-export const deleteSalaVirtual = async (id) => {
+export const toggleSalaVirtualStatus = async (id, status) => {
     try {
-        const response = await axios.delete(`${API_URL}/salasvirtuais/${id}`);
+        const response = await axios.patch(`${API_URL}/salasvirtuais/${id}`, { status });
         return response.data;
     } catch (error) {
-        console.error('Erro ao excluir sala virtual:', error);
-        throw error;
+        console.error('Erro ao alterar status da sala virtual:', error);
+        throw error.response ? error.response.data : error;
     }
 };
