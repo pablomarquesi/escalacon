@@ -149,7 +149,6 @@ const CadastroConciliador = () => {
                     icon={<PlusOutlined />} 
                     onClick={showModal}
                     type="primary"
-                    className="custom-button"
                 >
                     Adicionar
                 </Button>

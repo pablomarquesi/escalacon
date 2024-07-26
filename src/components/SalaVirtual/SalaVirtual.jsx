@@ -34,7 +34,9 @@ const SalaVirtual = () => {
     const loadSalasVirtuais = async () => {
         try {
             const data = await fetchSalasVirtuais();
-            setSalasVirtuais(data);
+            // Ordenar salas: ativas primeiro, inativas depois
+            const sortedData = data.sort((a, b) => a.status_sala_virtual === 'Ativo' ? -1 : 1);
+            setSalasVirtuais(sortedData);
         } catch (error) {
             message.error('Erro ao carregar salas virtuais');
         }
