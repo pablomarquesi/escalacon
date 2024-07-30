@@ -17,7 +17,7 @@ const getBusinessDays = (year, month) => {
     return businessDays;
 };
 
-const DisponibilidadeModal = ({ form, isModalVisible, onFinish, onCancel, filteredConciliadores, handleConciliadorSearch, editingDisponibilidade, disabledDate, statuses }) => {
+const DisponibilidadeConciliadorModal = ({ form, isModalVisible, onFinish, onCancel, filteredConciliadores, handleConciliadorSearch, editingDisponibilidade, disabledDate, statuses }) => {
     const [selectedDays, setSelectedDays] = useState([]);
     const [monthYear, setMonthYear] = useState({ year: null, month: null });
     const [businessDays, setBusinessDays] = useState([]);
@@ -164,4 +164,4 @@ const DisponibilidadeModal = ({ form, isModalVisible, onFinish, onCancel, filter
     );
 };
 
-export default DisponibilidadeModal;
+export default DisponibilidadeConciliadorModal;

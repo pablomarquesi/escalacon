@@ -1,6 +1,6 @@
 import db from '../config/database.js';
 
-export async function fetchDisponibilidades(req, res) {
+export async function fetchDisponibilidadesConciliadores(req, res) {
     try {
         const [disponibilidades] = await db.query(`
             SELECT dc.id, 
@@ -21,11 +21,11 @@ export async function fetchDisponibilidades(req, res) {
         `);
         res.json(disponibilidades);
     } catch (error) {
-        res.status(500).send('Erro no servidor ao buscar disponibilidades');
+        res.status(500).send('Erro no servidor ao buscar disponibilidades dos conciliadores');
     }
 }
 
-export async function addDisponibilidade(req, res) {
+export async function addDisponibilidadeConciliador(req, res) {
     const { conciliador_id, ano, mes, quantidade_dias, dias_da_semana, status_id } = req.body;
 
     try {
@@ -68,7 +68,7 @@ export async function addDisponibilidade(req, res) {
     }
 }
 
-export async function toggleDisponibilidadeStatus(req, res) {
+export async function toggleDisponibilidadeConciliadorStatus(req, res) {
     const { id } = req.params;
     const { status } = req.body;
     try {

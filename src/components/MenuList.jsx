@@ -14,7 +14,7 @@ import {
     FileOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import Logo from './Logo'; 
+import Logo from './Logo';
 
 const MenuList = ({ collapsed }) => {
     const navigate = useNavigate();
@@ -33,6 +33,12 @@ const MenuList = ({ collapsed }) => {
             case 'disponibilidade':
                 navigate('/cadastro/disponibilidade');
                 break;
+            case 'salavirtual':
+                navigate('/cadastro/disponibilidade/salavirtual');
+                break;
+            case 'conciliadores':
+                navigate('/cadastro/disponibilidade');
+                break;
             case 'status':
                 navigate('/cadastro/status');
                 break;
@@ -45,7 +51,7 @@ const MenuList = ({ collapsed }) => {
             case 'juizado':
                 navigate('/locais/juizado');
                 break;
-            case 'salavirtual':
+            case 'locaissalavirtual':
                 navigate('/locais/salavirtual');
                 break;
             case 'usuarios':
@@ -80,7 +86,19 @@ const MenuList = ({ collapsed }) => {
                 {
                     key: 'disponibilidade',
                     icon: <HourglassOutlined />,
-                    label: 'Disponibilidade'
+                    label: 'Disponibilidade',
+                    children: [
+                        {
+                            key: 'conciliadores',
+                            icon: <UserOutlined />,
+                            label: 'Conciliadores'
+                        },
+                        {
+                            key: 'salavirtual',
+                            icon: <VideoCameraOutlined />,
+                            label: 'Sala Virtual'
+                        }
+                    ]
                 },
                 {
                     key: 'status',
@@ -110,7 +128,7 @@ const MenuList = ({ collapsed }) => {
                     label: 'Juizado'
                 },
                 {
-                    key: 'salavirtual',
+                    key: 'locaissalavirtual',
                     icon: <VideoCameraOutlined />,
                     label: 'Sala Virtual'
                 }

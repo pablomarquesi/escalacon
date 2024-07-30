@@ -7,7 +7,8 @@ import CadastroConciliador from './components/Conciliadores/CadastroConciliador'
 import CadastroStatus from './components/Status/CadastroStatus';
 import CadastroComarca from './components/Comarca/CadastroComarca';
 import EscalaConciliadores from './components/EscalaConciliadores/EscalaConciliadores';
-import Disponibilidade from "./components/Disponibilidade/Disponibilidade";
+import DisponibilidadeConciliador from './components/DisponibilidadeConciliador/DisponibilidadeConciliador';
+import DisponibilidadeSalaVirtual from './components/DisponibilidadeSalas/DisponibilidadeSalaVirtual';
 import Dashboard from './components/Dashboard';
 import Juizado from "./components/Juizado/Juizado";
 import SalaVirtual from "./components/SalaVirtual/SalaVirtual";
@@ -70,7 +71,8 @@ function App() {
               <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} />
               <Route path="/escala" element={isAuthenticated ? <EscalaConciliadores /> : <Navigate to="/login" />} />
               <Route path="/cadastro/conciliador" element={isAuthenticated ? <CadastroConciliador /> : <Navigate to="/login" />} />
-              <Route path="/cadastro/disponibilidade" element={isAuthenticated ? <Disponibilidade /> : <Navigate to="/login" />} />
+              <Route path="/cadastro/disponibilidade" element={isAuthenticated ? <DisponibilidadeConciliador /> : <Navigate to="/login" />} />
+              <Route path="cadastro/disponibilidade/salavirtual" element={isAuthenticated ? <DisponibilidadeSalaVirtual /> : <Navigate to="/login" />} />
               <Route path="/cadastro/status" element={isAuthenticated ? <CadastroStatus /> : <Navigate to="/login" />} />
               <Route path="/cadastro/tipodepauta" element={isAuthenticated ? <TipoDePauta /> : <Navigate to="/login" />} />
               <Route path="/locais/comarca" element={isAuthenticated ? <CadastroComarca /> : <Navigate to="/login" />} />

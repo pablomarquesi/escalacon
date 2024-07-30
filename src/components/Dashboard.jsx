@@ -46,7 +46,7 @@ const Dashboard = () => {
 
   const fetchDisponibilidadeData = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/disponibilidades', { params: { filter } });
+      const response = await axios.get('http://localhost:3000/api/disponibilidades-conciliadores', { params: { filter } });
       const data = response.data.reduce((acc, disponibilidade) => {
         const dias = disponibilidade.dia_da_semana.split(',');
         dias.forEach(dia => {
@@ -72,7 +72,7 @@ const Dashboard = () => {
 
   const fetchStatusData = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/disponibilidades', { params: { filter } });
+      const response = await axios.get('http://localhost:3000/api/disponibilidades-conciliadores', { params: { filter } });
       const data = response.data.reduce((acc, disponibilidade) => {
         const status = disponibilidade.nome_status || 'Sem Status';
         if (!acc[status]) {
@@ -118,7 +118,7 @@ const Dashboard = () => {
 
   const fetchTotalConciliadoresDisponiveis = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/disponibilidades', { params: { filter } });
+      const response = await axios.get('http://localhost:3000/api/disponibilidades-conciliadores', { params: { filter } });
       const conciliadoresIds = new Set(response.data.filter(d => d.status_disponibilidade === 'Ativo').map(d => d.nome_conciliador));
       setTotalConciliadoresDisponiveis(conciliadoresIds.size);
     } catch (error) {

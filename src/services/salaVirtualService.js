@@ -22,6 +22,7 @@ export const fetchTiposPauta = async () => {
     }
 };
 
+
 export const saveSalaVirtual = async (salaVirtual) => {
     try {
         const response = salaVirtual.sala_virtual_id

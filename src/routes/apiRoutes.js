@@ -1,13 +1,17 @@
-import { addConciliador, deleteConciliadores, fetchConciliadores, testDbConnection, updateConciliador, toggleConciliadorStatus } from '../controllers/conciliadorController.js';
+import express from 'express';
+import { addConciliador, deleteConciliadores, fetchConciliadores, updateConciliador, toggleConciliadorStatus } from '../controllers/conciliadorController.js';
 import { fetchStatus, addStatus, updateStatus, deleteStatus, toggleStatus } from '../controllers/statusController.js';
-import { addDisponibilidade, fetchDisponibilidades, toggleDisponibilidadeStatus } from '../controllers/disponibilidadeController.js';
+import { addDisponibilidadeConciliador, fetchDisponibilidadesConciliadores, toggleDisponibilidadeConciliadorStatus } from '../controllers/disponibilidadeConciliadorController.js';
+import { fetchDisponibilidadesSalas, addDisponibilidadeSala, toggleDisponibilidadeSalaStatus } from '../controllers/disponibilidadeSalaController.js';
 import { addComarca, deleteComarca, fetchComarcas, updateComarca } from '../controllers/comarcaController.js';
 import { fetchJuizados, addJuizado, updateJuizado, deleteJuizado } from '../controllers/juizadoController.js';
-import { fetchSalasVirtuais, addSalaVirtual, updateSalaVirtual, toggleSalaVirtualStatus, fetchTiposPauta } from '../controllers/salaVirtualController.js';
+import { fetchSalasVirtuais, addSalaVirtual, updateSalaVirtual, toggleSalaVirtualStatus, fetchTiposPauta  } from '../controllers/salaVirtualController.js';
 import { addTipoDePauta, fetchTiposDePauta, updateTipoDePauta, toggleTipoDePautaStatus } from '../controllers/tipoDePautaController.js';
 
+const router = express.Router();
+
 export function registerApiRoutes(app) {
-    app.get('/testdb', testDbConnection);
+    app.get('/testdb', (req, res) => res.send('Database connection is working'));
 
     // Rotas para conciliadores
     app.get('/api/conciliadores', fetchConciliadores);
@@ -29,10 +33,15 @@ export function registerApiRoutes(app) {
     app.delete('/api/status/:id', deleteStatus);
     app.patch('/api/status/:id', toggleStatus);
 
-    // Rotas para disponibilidades
-    app.get('/api/disponibilidades', fetchDisponibilidades);
-    app.post('/api/disponibilidades', addDisponibilidade);
-    app.patch('/api/disponibilidades/:id', toggleDisponibilidadeStatus);
+    // Rotas para disponibilidades dos conciliadores
+    app.get('/api/disponibilidades-conciliadores', fetchDisponibilidadesConciliadores);
+    app.post('/api/disponibilidades-conciliadores', addDisponibilidadeConciliador);
+    app.patch('/api/disponibilidades-conciliadores/:id', toggleDisponibilidadeConciliadorStatus);
+
+    // Rotas para disponibilidades das salas
+    app.get('/api/disponibilidades-salas', fetchDisponibilidadesSalas);
+    app.post('/api/disponibilidades-salas', addDisponibilidadeSala);
+    app.patch('/api/disponibilidades-salas/:id', toggleDisponibilidadeSalaStatus);
 
     // Rotas para juizados
     app.get('/api/juizados', fetchJuizados);
@@ -52,4 +61,7 @@ export function registerApiRoutes(app) {
     app.post('/api/tipodepauta', addTipoDePauta);
     app.put('/api/tipodepauta/:id', updateTipoDePauta);
     app.patch('/api/tipodepauta/:id', toggleTipoDePautaStatus);
+
 }
+
+export default router;
