@@ -18,6 +18,8 @@ const DisponibilidadeSalaVirtual = () => {
     const [endpoints, setEndpoints] = useState([]);
     const [searchText, setSearchText] = useState('');
     const [selectedMonth, setSelectedMonth] = useState(null);
+    const [currentEndpoint, setCurrentEndpoint] = useState('');
+    const [currentData, setCurrentData] = useState('');
 
     const fetchEndpoints = async () => {
         try {
@@ -87,50 +89,51 @@ const DisponibilidadeSalaVirtual = () => {
             message.warning('Por favor, selecione pelo menos um endpoint.');
             return;
         }
-
+    
         if (!selectedMonth) {
             message.warning('Por favor, selecione o mês.');
             return;
         }
-
+    
         const [ano, mes] = [selectedMonth.year(), selectedMonth.month() + 1];
-
+    
         setLoading(true);
         setIsModalVisible(false);
-
+    
         const datasDoMes = gerarDatasDoMes(ano, mes);
         const totalRequests = datasDoMes.length * selectedEndpoints.length;
         let completedRequests = 0;
         const salasImportadas = {};
-
+    
         for (const data of datasDoMes) {
-            const fetchPromises = selectedEndpoints.map(endpoint => 
-                buscarDados(data, endpoint).then(dados => {
-                    if (dados) {
-                        const infoExtraida = extrairInfo(dados);
-                        if (infoExtraida.length > 0) {
-                            infoExtraida.forEach(info => {
-                                const dataSimples = info.dataAudiencia.split('T')[0];
-                                if (!salasImportadas[endpoint]) {
-                                    salasImportadas[endpoint] = {};
-                                }
-                                if (!salasImportadas[endpoint][info.sala]) {
-                                    salasImportadas[endpoint][info.sala] = {};
-                                }
-                                if (!salasImportadas[endpoint][info.sala][dataSimples]) {
-                                    salasImportadas[endpoint][info.sala][dataSimples] = [];
-                                }
-                                salasImportadas[endpoint][info.sala][dataSimples].push(info);
-                            });
-                        }
+            for (const endpoint of selectedEndpoints) {
+                setCurrentEndpoint(endpoints.find(ep => ep.value === endpoint)?.label || `Endpoint ${endpoint}`);
+                setCurrentData(data);
+    
+                const dados = await buscarDados(data, endpoint);
+                if (dados) {
+                    const infoExtraida = extrairInfo(dados);
+                    if (infoExtraida.length > 0) {
+                        infoExtraida.forEach(info => {
+                            const dataSimples = info.dataAudiencia.split('T')[0];
+                            if (!salasImportadas[endpoint]) {
+                                salasImportadas[endpoint] = {};
+                            }
+                            if (!salasImportadas[endpoint][info.sala]) {
+                                salasImportadas[endpoint][info.sala] = {};
+                            }
+                            if (!salasImportadas[endpoint][info.sala][dataSimples]) {
+                                salasImportadas[endpoint][info.sala][dataSimples] = [];
+                            }
+                            salasImportadas[endpoint][info.sala][dataSimples].push(info);
+                        });
                     }
-                    completedRequests++;
-                    setProgress(Math.floor((completedRequests / totalRequests) * 100));
-                })
-            );
-            await Promise.all(fetchPromises);
+                }
+                completedRequests++;
+                setProgress(Math.floor((completedRequests / totalRequests) * 100));
+            }
         }
-
+    
         const groupedByComarca = Object.keys(salasImportadas).reduce((acc, endpoint) => {
             const comarca = endpoints.find(ep => ep.value === parseInt(endpoint))?.comarca;
             if (!acc[comarca]) {
@@ -146,14 +149,29 @@ const DisponibilidadeSalaVirtual = () => {
             });
             return acc;
         }, {});
-
+    
         setSalas(groupedByComarca);
         setLoading(false);
+        setCurrentEndpoint('');
+        setCurrentData('');
     };
+    
 
     const handleEndpointChange = (value) => {
-        setSelectedEndpoints(value);
+        if (value.includes('all')) {
+            if (selectedEndpoints.length === endpoints.length) {
+                // Se todos já estiverem selecionados, desmarcar todos
+                setSelectedEndpoints([]);
+            } else {
+                // Se nem todos estiverem selecionados, selecionar todos
+                setSelectedEndpoints(endpoints.map(endpoint => endpoint.value));
+            }
+        } else {
+            setSelectedEndpoints(value);
+        }
     };
+
+    const isAllSelected = selectedEndpoints.length === endpoints.length;
 
     const handleMonthChange = (date) => {
         setSelectedMonth(date);
@@ -295,7 +313,11 @@ const DisponibilidadeSalaVirtual = () => {
                         onChange={handleEndpointChange}
                         style={{ width: '100%' }}
                         optionLabelProp="label"
+                        value={selectedEndpoints}
                     >
+                        <Option key="all" value="all">
+                            {isAllSelected ? "Desmarcar Todos" : "Selecionar Todos"}
+                        </Option>
                         {endpoints.map(endpoint => (
                             <Option key={endpoint.value} value={endpoint.value} label={endpoint.label}>
                                 {endpoint.label}
@@ -312,6 +334,7 @@ const DisponibilidadeSalaVirtual = () => {
                     />
                 </div>
             </Modal>
+
             {loading && (
                 <Modal
                     visible={loading}
@@ -321,9 +344,13 @@ const DisponibilidadeSalaVirtual = () => {
                 >
                     <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                         <Progress type="circle" percent={progress} />
+                        <div style={{ marginTop: '20px', fontSize: '16px' }}>
+                            Importando dados de <strong>{currentEndpoint}</strong> para a data <strong>{currentData}</strong>
+                        </div>
                     </div>
                 </Modal>
             )}
+
             <Modal
                 title={`Calendário de Audiências - ${selectedSala}`}
                 visible={calendarModalVisible}
