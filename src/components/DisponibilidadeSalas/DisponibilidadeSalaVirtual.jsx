@@ -19,7 +19,6 @@ const DisponibilidadeSalaVirtual = () => {
     const [searchText, setSearchText] = useState('');
     const [selectedMonth, setSelectedMonth] = useState(null);
 
-    // Função para buscar os endpoints dinamicamente
     const fetchEndpoints = async () => {
         try {
             const response = await fetch('http://localhost:3000/api/juizados');
@@ -28,6 +27,7 @@ const DisponibilidadeSalaVirtual = () => {
                 const endpoints = data.map(item => ({
                     label: item.nome_juizado,
                     value: item.endpoint_id,
+                    comarca: item.nome_comarca,
                 }));
                 setEndpoints(endpoints);
             } else {
@@ -131,16 +131,23 @@ const DisponibilidadeSalaVirtual = () => {
             await Promise.all(fetchPromises);
         }
 
-        const salasArray = Object.keys(salasImportadas).map(endpoint => ({
-            endpoint,
-            nome: endpoints.find(ep => ep.value === parseInt(endpoint))?.label || `Endpoint ${endpoint}`,
-            salas: Object.keys(salasImportadas[endpoint]).map(sala => ({
-                sala,
-                datas: salasImportadas[endpoint][sala]
-            }))
-        }));
+        const groupedByComarca = Object.keys(salasImportadas).reduce((acc, endpoint) => {
+            const comarca = endpoints.find(ep => ep.value === parseInt(endpoint))?.comarca;
+            if (!acc[comarca]) {
+                acc[comarca] = [];
+            }
+            acc[comarca].push({
+                endpoint,
+                nome: endpoints.find(ep => ep.value === parseInt(endpoint))?.label || `Endpoint ${endpoint}`,
+                salas: Object.keys(salasImportadas[endpoint]).map(sala => ({
+                    sala,
+                    datas: salasImportadas[endpoint][sala]
+                }))
+            });
+            return acc;
+        }, {});
 
-        setSalas(salasArray);
+        setSalas(groupedByComarca);
         setLoading(false);
     };
 
@@ -176,9 +183,28 @@ const DisponibilidadeSalaVirtual = () => {
 
     const dateCellRender = (date) => {
         const formattedDate = date.format('YYYY-MM-DD');
-        const audiencias = salas.find(endpoint => endpoint.salas.find(sala => sala.sala === selectedSala))?.salas.find(sala => sala.sala === selectedSala)?.datas[formattedDate] || [];
-    
-        if (selectedDates.includes(formattedDate)) {
+
+        let audiencias = [];
+        
+        // Iterar sobre as comarcas
+        for (const comarca in salas) {
+            const juizados = salas[comarca];
+            
+            // Iterar sobre os juizados dentro da comarca
+            for (const juizado of juizados) {
+                const salaEncontrada = juizado.salas.find(sala => sala.sala === selectedSala);
+                
+                if (salaEncontrada) {
+                    const datas = salaEncontrada.datas[formattedDate];
+                    
+                    if (datas) {
+                        audiencias = [...audiencias, ...datas];
+                    }
+                }
+            }
+        }
+
+        if (audiencias.length > 0) {
             return (
                 <div className="ant-picker-cell-inner ant-picker-calendar-date">
                     <div className="ant-picker-calendar-date-content">
@@ -214,32 +240,38 @@ const DisponibilidadeSalaVirtual = () => {
             </HeaderSection>
             <div className="table-container" style={{ padding: '16px', backgroundColor: '#fff', borderRadius: '8px' }}>
                 <Collapse accordion>
-                    {salas.filter(endpoint => 
-                        endpoint.nome.toLowerCase().includes(searchText)
-                    ).map(endpoint => (
-                        <Panel header={endpoint.nome} key={endpoint.endpoint}>
-                            <List
-                                itemLayout="horizontal"
-                                dataSource={endpoint.salas}
-                                renderItem={sala => (
-                                    <List.Item
-                                        actions={[
-                                            <Tooltip title="Ver Calendário">
-                                                <Button
-                                                    type="link"
-                                                    icon={<CalendarOutlined />}
-                                                    onClick={() => showCalendarModal(sala.sala, sala.datas)}
-                                                />
-                                            </Tooltip>
-                                        ]}
-                                    >
-                                        <List.Item.Meta
-                                            title={`Sala: ${sala.sala}`}
-                                        />
-                                    </List.Item>
-                                )}
-                            />
-                        </Panel>
+                    {Object.entries(salas).map(([comarca, juizados]) => (
+                        Array.isArray(juizados) && (
+                            <Panel header={comarca} key={comarca}>
+                                <Collapse accordion>
+                                    {juizados.map(juizado => (
+                                        <Panel header={juizado.nome} key={juizado.endpoint}>
+                                            <List
+                                                itemLayout="horizontal"
+                                                dataSource={juizado.salas}
+                                                renderItem={sala => (
+                                                    <List.Item
+                                                        actions={[
+                                                            <Tooltip title="Ver Calendário">
+                                                                <Button
+                                                                    type="link"
+                                                                    icon={<CalendarOutlined />}
+                                                                    onClick={() => showCalendarModal(sala.sala, sala.datas)}
+                                                                />
+                                                            </Tooltip>
+                                                        ]}
+                                                    >
+                                                        <List.Item.Meta
+                                                            title={`Sala: ${sala.sala}`}
+                                                        />
+                                                    </List.Item>
+                                                )}
+                                            />
+                                        </Panel>
+                                    ))}
+                                </Collapse>
+                            </Panel>
+                        )
                     ))}
                 </Collapse>
             </div>
@@ -271,7 +303,7 @@ const DisponibilidadeSalaVirtual = () => {
                         ))}
                     </Select>
                 </div>
-                <div style={{ marginTop: 16 }}>
+                <div style={{ marginTop: '16px' }}>
                     <DatePicker
                         picker="month"
                         placeholder="Selecione o mês"
