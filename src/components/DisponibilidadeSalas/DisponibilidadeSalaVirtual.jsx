@@ -1,220 +1,314 @@
-import React, { useEffect, useState } from 'react';
-import { Form, Button, message, Space, Tooltip, Switch, Popconfirm } from 'antd';
-import { EditOutlined, PlusOutlined } from '@ant-design/icons';
-import moment from 'moment';
-import 'moment/locale/pt-br';
-import { fetchDisponibilidadesSalas, saveDisponibilidadeSala, toggleDisponibilidadeSalaStatus } from '../../services/disponibilidadeSalaService';
-import { fetchSalasVirtuais } from '../../services/salaVirtualService';
-import DisponibilidadeSalaVirtualModal from './DisponibilidadeSalaVirtualModal';
+import React, { useState, useEffect } from 'react';
+import { Button, message, Modal, Progress, Collapse, Select, DatePicker, Input, List, Tooltip, Calendar } from 'antd';
+import { CalendarOutlined } from '@ant-design/icons';
 import HeaderSection from '../common/HeaderSection';
-import CustomTable from '../common/CustomTable';
 
-moment.locale('pt-br');
+const { Panel } = Collapse;
+const { Option } = Select;
 
 const DisponibilidadeSalaVirtual = () => {
-    const [form] = Form.useForm();
-    const [disponibilidades, setDisponibilidades] = useState([]);
-    const [filteredDisponibilidades, setFilteredDisponibilidades] = useState([]);
     const [salas, setSalas] = useState([]);
-    const [filteredSalas, setFilteredSalas] = useState([]);
-    const [editingDisponibilidade, setEditingDisponibilidade] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [progress, setProgress] = useState(0);
+    const [selectedEndpoints, setSelectedEndpoints] = useState([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [searchText, setSearchText] = useState("");
-    const [pageSize, setPageSize] = useState(10);
-    const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+    const [calendarModalVisible, setCalendarModalVisible] = useState(false);
+    const [selectedDates, setSelectedDates] = useState([]);
+    const [selectedSala, setSelectedSala] = useState('');
+    const [endpoints, setEndpoints] = useState([]);
+    const [searchText, setSearchText] = useState('');
+    const [selectedMonth, setSelectedMonth] = useState(null);
+
+    // Função para buscar os endpoints dinamicamente
+    const fetchEndpoints = async () => {
+        try {
+            const response = await fetch('http://localhost:3000/api/juizados');
+            if (response.ok) {
+                const data = await response.json();
+                const endpoints = data.map(item => ({
+                    label: item.nome_juizado,
+                    value: item.endpoint_id,
+                }));
+                setEndpoints(endpoints);
+            } else {
+                console.error('Erro ao buscar endpoints:', response.status);
+                message.error('Erro ao buscar endpoints');
+            }
+        } catch (error) {
+            console.error('Erro ao buscar endpoints:', error);
+            message.error('Erro ao buscar endpoints');
+        }
+    };
 
     useEffect(() => {
-        loadDisponibilidades();
-        loadSalasVirtuais();
+        fetchEndpoints();
     }, []);
 
-    const loadDisponibilidades = async () => {
-        try {
-            const data = await fetchDisponibilidadesSalas();
-            setDisponibilidades(data);
-            setFilteredDisponibilidades(data);
-        } catch (error) {
-            message.error('Erro ao carregar disponibilidades');
+    const gerarDatasDoMes = (ano, mes) => {
+        const datas = [];
+        let dataAtual = new Date(ano, mes - 1, 1);
+        while (dataAtual.getMonth() + 1 === mes) {
+            datas.push(dataAtual.toISOString().split('T')[0]);
+            dataAtual.setDate(dataAtual.getDate() + 1);
         }
+        return datas;
     };
 
-    const loadSalasVirtuais = async () => {
+    const buscarDados = async (data, endpoint) => {
+        const url = `https://plenarios-api.tjmt.jus.br/consulta-pje/obter-pauta-audiencia/${data}/${endpoint}`;
         try {
-            const data = await fetchSalasVirtuais();
-            setSalas(data);
-            setFilteredSalas(data);
-        } catch (error) {
-            message.error('Erro ao carregar salas virtuais');
-        }
-    };
-
-    const handleFinish = async (values) => {
-        try {
-            const disponibilidadeData = {
-                sala_virtual_id: values.sala_virtual_id,
-                tipo: values.tipo,
-                detalhes: values.detalhes,
-                status_id: values.status_id
-            };
-
-            if (editingDisponibilidade) {
-                disponibilidadeData.id = editingDisponibilidade.id;
+            const response = await fetch(url);
+            if (response.ok) {
+                return await response.json();
+            } else {
+                console.error('Erro ao buscar dados:', response.status);
+                return null;
             }
-
-            await saveDisponibilidadeSala(disponibilidadeData);
-
-            form.resetFields();
-            setEditingDisponibilidade(null);
-            loadDisponibilidades();
-            setIsModalVisible(false);
-            message.success('Disponibilidade salva com sucesso');
         } catch (error) {
-            message.error(error.message || 'Erro ao salvar disponibilidade');
+            console.error('Erro ao buscar dados:', error);
+            return null;
         }
     };
 
-    const handleEdit = (record) => {
-        setEditingDisponibilidade(record);
-        const fieldsValue = {
-            sala_virtual_id: record.sala_virtual_id,
-            tipo: record.tipo,
-            detalhes: record.detalhes,
-            status_id: record.status_id
-        };
-        form.setFieldsValue(fieldsValue);
-        setIsModalVisible(true);
-    };
-
-    const handleToggleStatus = async (id, currentStatus) => {
-        const newStatus = currentStatus === 'Ativo' ? 'Inativo' : 'Ativo';
-        try {
-            await toggleDisponibilidadeSalaStatus(id, newStatus);
-            message.success(`Disponibilidade ${newStatus === 'Ativo' ? 'ativada' : 'inativada'} com sucesso`);
-            loadDisponibilidades();
-        } catch (error) {
-            console.error('Erro ao alterar status da disponibilidade:', error);
-            message.error('Erro ao alterar status da disponibilidade. Tente novamente.');
+    const extrairInfo = (dados) => {
+        const infoExtraida = [];
+        for (const item of dados) {
+            const dataAudiencia = item.dataAudiencia;
+            const sala = item.sala;
+            if (dataAudiencia && sala) {
+                infoExtraida.push({ dataAudiencia, sala, ...item });
+            }
         }
+        return infoExtraida;
     };
 
-    const handleModalCancel = () => {
-        setEditingDisponibilidade(null);
-        form.resetFields();
+    const handleImportarSalas = async () => {
+        if (selectedEndpoints.length === 0) {
+            message.warning('Por favor, selecione pelo menos um endpoint.');
+            return;
+        }
+
+        if (!selectedMonth) {
+            message.warning('Por favor, selecione o mês.');
+            return;
+        }
+
+        const [ano, mes] = [selectedMonth.year(), selectedMonth.month() + 1];
+
+        setLoading(true);
         setIsModalVisible(false);
+
+        const datasDoMes = gerarDatasDoMes(ano, mes);
+        const totalRequests = datasDoMes.length * selectedEndpoints.length;
+        let completedRequests = 0;
+        const salasImportadas = {};
+
+        for (const data of datasDoMes) {
+            const fetchPromises = selectedEndpoints.map(endpoint => 
+                buscarDados(data, endpoint).then(dados => {
+                    if (dados) {
+                        const infoExtraida = extrairInfo(dados);
+                        if (infoExtraida.length > 0) {
+                            infoExtraida.forEach(info => {
+                                const dataSimples = info.dataAudiencia.split('T')[0];
+                                if (!salasImportadas[endpoint]) {
+                                    salasImportadas[endpoint] = {};
+                                }
+                                if (!salasImportadas[endpoint][info.sala]) {
+                                    salasImportadas[endpoint][info.sala] = {};
+                                }
+                                if (!salasImportadas[endpoint][info.sala][dataSimples]) {
+                                    salasImportadas[endpoint][info.sala][dataSimples] = [];
+                                }
+                                salasImportadas[endpoint][info.sala][dataSimples].push(info);
+                            });
+                        }
+                    }
+                    completedRequests++;
+                    setProgress(Math.floor((completedRequests / totalRequests) * 100));
+                })
+            );
+            await Promise.all(fetchPromises);
+        }
+
+        const salasArray = Object.keys(salasImportadas).map(endpoint => ({
+            endpoint,
+            nome: endpoints.find(ep => ep.value === parseInt(endpoint))?.label || `Endpoint ${endpoint}`,
+            salas: Object.keys(salasImportadas[endpoint]).map(sala => ({
+                sala,
+                datas: salasImportadas[endpoint][sala]
+            }))
+        }));
+
+        setSalas(salasArray);
+        setLoading(false);
+    };
+
+    const handleEndpointChange = (value) => {
+        setSelectedEndpoints(value);
+    };
+
+    const handleMonthChange = (date) => {
+        setSelectedMonth(date);
     };
 
     const handleSearch = (e) => {
-        const value = e.target.value.toLowerCase();
-        setSearchText(value);
-
-        const filtered = disponibilidades.filter(disponibilidade =>
-            disponibilidade.nome_sala_virtual.toLowerCase().includes(value)
-        );
-        setFilteredDisponibilidades(filtered);
+        setSearchText(e.target.value.toLowerCase());
     };
 
-    const handleSalaSearch = (value) => {
-        const filtered = salas.filter(sala =>
-            sala.nome_sala_virtual.toLowerCase().includes(value.toLowerCase())
-        );
-        setFilteredSalas(filtered);
+    const showImportModal = () => {
+        setIsModalVisible(true);
     };
 
-    const columns = [
-        {
-            title: 'Sala Virtual',
-            dataIndex: 'nome_sala_virtual',
-            key: 'nome_sala_virtual',
-            align: 'left',
-            sorter: (a, b) => (a.nome_sala_virtual || "").toString().localeCompare((b.nome_sala_virtual || "").toString()),
-        },
-        {
-            title: 'Tipo',
-            dataIndex: 'tipo',
-            key: 'tipo',
-            align: 'center',
-            sorter: (a, b) => (a.tipo || "").toString().localeCompare((b.tipo || "").toString()),
-        },
-        {
-            title: 'Detalhes',
-            dataIndex: 'detalhes',
-            key: 'detalhes',
-            align: 'left',
-        },
-        {
-            title: 'Status',
-            dataIndex: 'nome_status',
-            key: 'status',
-            align: 'center',
-            sorter: (a, b) => (a.nome_status || "").toString().localeCompare((b.nome_status || "").toString()),
-            render: (text, record) => {
-                return (
-                    <Tooltip title={record.descricao_status || 'Sem descrição'}>
-                        <span>{record.nome_status || 'Sem status'}</span>
-                    </Tooltip>
-                );
-            },
-        },
-        {
-            title: 'Ações',
-            key: 'actions',
-            align: 'center',
-            render: (text, record) => (
-                <Space size="middle">
-                    <Button
-                        type="default"
-                        icon={<EditOutlined />}
-                        onClick={() => handleEdit(record)}
-                    />
-                    <Popconfirm
-                        title={`Tem certeza que deseja ${record.status_disponibilidade === 'Ativo' ? 'inativar' : 'ativar'} esta disponibilidade?`}
-                        onConfirm={() => handleToggleStatus(record.id, record.status_disponibilidade)}
-                        okText="Sim"
-                        cancelText="Não"
-                    >
-                        <Switch
-                            checked={record.status_disponibilidade === 'Ativo'}
-                        />
-                    </Popconfirm>
-                </Space>
-            ),
-        },
-    ];
+    const handleCancel = () => {
+        setIsModalVisible(false);
+    };
 
-    const rowSelection = {
-        selectedRowKeys,
-        onChange: (selectedRowKeys) => {
-            setSelectedRowKeys(selectedRowKeys);
+    const handleCalendarModalCancel = () => {
+        setCalendarModalVisible(false);
+    };
+
+    const showCalendarModal = (sala, datas) => {
+        setSelectedSala(sala);
+        setSelectedDates(Object.keys(datas));
+        setCalendarModalVisible(true);
+    };
+
+    const dateCellRender = (date) => {
+        const formattedDate = date.format('YYYY-MM-DD');
+        const audiencias = salas.find(endpoint => endpoint.salas.find(sala => sala.sala === selectedSala))?.salas.find(sala => sala.sala === selectedSala)?.datas[formattedDate] || [];
+    
+        if (selectedDates.includes(formattedDate)) {
+            return (
+                <div className="ant-picker-cell-inner ant-picker-calendar-date">
+                    <div className="ant-picker-calendar-date-content">
+                        <div style={{ textAlign: 'center', width: '100%', margin: '0px auto' }}>
+                            <div style={{ 
+                                fontSize: '10px', 
+                                color: '#fff', 
+                                backgroundColor: '#1890ff', 
+                                borderRadius: '5px', 
+                                padding: '0.5px 6px', 
+                            }}>
+                                {audiencias.length} audiências
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
         }
+
+        return null;
     };
 
     return (
         <div>
             <HeaderSection
-                title="Gerenciar Disponibilidades de Salas Virtuais"
+                title="Disponibilidade de Salas Virtuais"
                 onSearch={handleSearch}
                 searchText={searchText}
             >
-                <Button type="primary" onClick={() => setIsModalVisible(true)} icon={<PlusOutlined />}>
-                    Adicionar
+                <Button type="primary" onClick={showImportModal}>
+                    Importar Salas
                 </Button>
             </HeaderSection>
-            <CustomTable 
-                columns={columns} 
-                dataSource={filteredDisponibilidades} 
-                rowKey="id"
-                rowSelection={rowSelection} 
-                pagination={{ pageSize, onChange: (page, size) => setPageSize(size), showSizeChanger: true, pageSizeOptions: ['10', '20', '30', '40'] }}
-            />
-            <DisponibilidadeSalaVirtualModal 
-                form={form}
-                isModalVisible={isModalVisible}
-                onFinish={handleFinish}
-                onCancel={handleModalCancel}
-                filteredSalas={filteredSalas}
-                handleSalaSearch={handleSalaSearch}
-                editingDisponibilidade={editingDisponibilidade}
-            />
+            <div className="table-container" style={{ padding: '16px', backgroundColor: '#fff', borderRadius: '8px' }}>
+                <Collapse accordion>
+                    {salas.filter(endpoint => 
+                        endpoint.nome.toLowerCase().includes(searchText)
+                    ).map(endpoint => (
+                        <Panel header={endpoint.nome} key={endpoint.endpoint}>
+                            <List
+                                itemLayout="horizontal"
+                                dataSource={endpoint.salas}
+                                renderItem={sala => (
+                                    <List.Item
+                                        actions={[
+                                            <Tooltip title="Ver Calendário">
+                                                <Button
+                                                    type="link"
+                                                    icon={<CalendarOutlined />}
+                                                    onClick={() => showCalendarModal(sala.sala, sala.datas)}
+                                                />
+                                            </Tooltip>
+                                        ]}
+                                    >
+                                        <List.Item.Meta
+                                            title={`Sala: ${sala.sala}`}
+                                        />
+                                    </List.Item>
+                                )}
+                            />
+                        </Panel>
+                    ))}
+                </Collapse>
+            </div>
+            <Modal
+                title="Selecione os Endpoints e o Mês"
+                visible={isModalVisible}
+                onCancel={handleCancel}
+                footer={[
+                    <Button key="cancel" onClick={handleCancel}>
+                        Cancelar
+                    </Button>,
+                    <Button key="import" type="primary" onClick={handleImportarSalas}>
+                        Importar
+                    </Button>,
+                ]}
+            >
+                <div>
+                    <Select
+                        mode="multiple"
+                        placeholder="Selecione os endpoints"
+                        onChange={handleEndpointChange}
+                        style={{ width: '100%' }}
+                        optionLabelProp="label"
+                    >
+                        {endpoints.map(endpoint => (
+                            <Option key={endpoint.value} value={endpoint.value} label={endpoint.label}>
+                                {endpoint.label}
+                            </Option>
+                        ))}
+                    </Select>
+                </div>
+                <div style={{ marginTop: 16 }}>
+                    <DatePicker
+                        picker="month"
+                        placeholder="Selecione o mês"
+                        onChange={handleMonthChange}
+                        style={{ width: '100%' }}
+                    />
+                </div>
+            </Modal>
+            {loading && (
+                <Modal
+                    visible={loading}
+                    footer={null}
+                    closable={false}
+                    centered
+                >
+                    <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                        <Progress type="circle" percent={progress} />
+                    </div>
+                </Modal>
+            )}
+            <Modal
+                title={`Calendário de Audiências - ${selectedSala}`}
+                visible={calendarModalVisible}
+                onCancel={handleCalendarModalCancel}
+                footer={null}
+                centered
+                bodyStyle={{ padding: 0 }}
+                width={800}
+            >
+                <div style={{ padding: '16px' }}>
+                    <Calendar 
+                        dateCellRender={dateCellRender} 
+                        fullscreen={false} 
+                        style={{ width: '100%', height: '100%' }} 
+                    />
+                </div>
+            </Modal>
         </div>
     );
 };

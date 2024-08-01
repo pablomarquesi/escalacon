@@ -40,7 +40,7 @@ const Juizado = () => {
         try {
             const data = await fetchComarcas();
             setComarcas(data);
-            setFilteredComarcas(data); // Inicialmente, todas as comarcas são exibidas
+            setFilteredComarcas(data); 
         } catch (error) {
             message.error('Erro ao carregar comarcas');
         } finally {
@@ -162,7 +162,7 @@ const Juizado = () => {
                                             ]}
                                         >
                                             <List.Item.Meta
-                                                title={juizado.nome_juizado}
+                                                title={`${juizado.nome_juizado} | Endpoint: ${juizado.endpoint_id}`}
                                             />
                                         </List.Item>
                                     )}
@@ -203,6 +203,13 @@ const Juizado = () => {
                         name="nome_juizado"
                         label="Nome do Juizado"
                         rules={[{ required: true, message: 'Por favor, insira o nome do juizado' }]}
+                    >
+                        <Input />
+                    </Form.Item>
+                    <Form.Item
+                        name="endpoint_id"
+                        label="Número do Endpoint"
+                        rules={[{ required: true, message: 'Por favor, insira o número do endpoint' }]}
                     >
                         <Input />
                     </Form.Item>
