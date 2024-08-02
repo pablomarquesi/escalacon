@@ -11,18 +11,13 @@ export async function fetchSalasVirtuais(req, res) {
                 tp.nome_pauta AS tipo_pauta, 
                 s.situacao, 
                 j.nome_juizado, 
-                s.status_sala_virtual,
-                GROUP_CONCAT(ds.nome_dia ORDER BY ds.dia_semana_id SEPARATOR ', ') AS nome_dia
+                s.status_sala_virtual
             FROM 
                 sala_virtual AS s
             INNER JOIN 
                 juizado AS j ON s.juizado_id = j.juizado_id
             INNER JOIN 
                 tipo_de_pauta AS tp ON s.tipo_pauta_id = tp.id
-            LEFT JOIN 
-                sala_virtual_dia_semana AS svds ON s.sala_virtual_id = svds.sala_virtual_id
-            LEFT JOIN 
-                dia_semana AS ds ON svds.dia_semana_id = ds.dia_semana_id
             GROUP BY 
                 s.sala_virtual_id`
         );
