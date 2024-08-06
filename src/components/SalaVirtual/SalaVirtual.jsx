@@ -61,9 +61,11 @@ const SalaVirtual = () => {
             setIsModalVisible(false);
             message.success('Sala virtual salva com sucesso');
         } catch (error) {
-            message.error('Erro ao salvar sala virtual');
+            console.log('Captured error:', error); // Verificar o conteúdo do erro
+            message.error(`Erro: ${error}`);
         }
     };
+    
 
     const handleEdit = (record) => {
         setEditingSalaVirtual(record);
@@ -163,9 +165,6 @@ const SalaVirtual = () => {
                                                     <span style={{ marginLeft: '10px', color: '#888' }}>
                                                         | Tipo de Pauta: {sala.tipo_pauta}
                                                     </span>
-                                                    <span style={{ marginLeft: '10px', color: '#888' }}>
-                                                        | Situação: {sala.situacao}
-                                                    </span>
                                                 </div>
                                             }
                                             description={<></>}
@@ -222,13 +221,6 @@ const SalaVirtual = () => {
                                 </Option>
                             ))}
                         </Select>
-                    </Form.Item>
-                    <Form.Item
-                        name="situacao"
-                        label="Situação"
-                        rules={[{ required: true, message: 'Por favor, insira a situação' }]}
-                    >
-                        <Input />
                     </Form.Item>
                     <Form.Item>
                         <Space>

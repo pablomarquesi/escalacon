@@ -9,7 +9,6 @@ export async function fetchSalasVirtuais(req, res) {
                 s.nome_sala_virtual, 
                 s.tipo_pauta_id, 
                 tp.nome_pauta AS tipo_pauta, 
-                s.situacao, 
                 j.nome_juizado, 
                 s.status_sala_virtual
             FROM 
@@ -28,31 +27,46 @@ export async function fetchSalasVirtuais(req, res) {
 }
 
 export async function addSalaVirtual(req, res) {
-    const { juizado_id, nome_sala_virtual, tipo_pauta_id, situacao } = req.body;
+    const { juizado_id, nome_sala_virtual, tipo_pauta_id } = req.body;
     try {
+        // Verifique se o nome da sala já existe para o mesmo juizado
+        const [existingSala] = await db.query(
+            `SELECT j.nome_juizado FROM sala_virtual s
+             INNER JOIN juizado j ON s.juizado_id = j.juizado_id
+             WHERE s.nome_sala_virtual = ? AND s.juizado_id = ?`, 
+            [nome_sala_virtual, juizado_id]
+        );
+
+        if (existingSala.length > 0) {
+            return res.status(400).json({ 
+                error: `A sala virtual com o nome '${nome_sala_virtual}' já existe no juizado '${existingSala[0].nome_juizado}'.\nNão é permitido cadastrar salas com nomes iguais para o mesmo juizado.` 
+            });
+        }        
+
         const [result] = await db.query(
-            `INSERT INTO sala_virtual (juizado_id, nome_sala_virtual, tipo_pauta_id, situacao, status_sala_virtual) 
-            VALUES (?, ?, ?, ?, ?, 'Ativo')`,
-            [juizado_id, nome_sala_virtual, tipo_pauta_id, situacao]
+            `INSERT INTO sala_virtual (juizado_id, nome_sala_virtual, tipo_pauta_id, status_sala_virtual) 
+            VALUES (?, ?, ?, 'Ativo')`,
+            [juizado_id, nome_sala_virtual, tipo_pauta_id]
         );
 
         const salaVirtualId = result.insertId;
 
         res.status(201).json({ message: 'Sala virtual adicionada com sucesso', sala_virtual_id: salaVirtualId });
     } catch (error) {
+        console.error('Erro ao adicionar sala virtual:', error);
         res.status(500).json({ error: 'Erro ao adicionar sala virtual' });
     }
 }
 
 export async function updateSalaVirtual(req, res) {
     const { id } = req.params;
-    const { juizado_id, nome_sala_virtual, tipo_pauta_id, situacao} = req.body;
+    const { juizado_id, nome_sala_virtual, tipo_pauta_id } = req.body;
     try {
         await db.query(
             `UPDATE sala_virtual 
-            SET juizado_id = ?, nome_sala_virtual = ?, tipo_pauta_id = ?, situacao = ?
+            SET juizado_id = ?, nome_sala_virtual = ?, tipo_pauta_id = ?
             WHERE sala_virtual_id = ?`,
-            [juizado_id, nome_sala_virtual, tipo_pauta_id, situacao]
+            [juizado_id, nome_sala_virtual, tipo_pauta_id, id]
         );
 
         res.json({ message: 'Sala virtual atualizada com sucesso' });
@@ -60,6 +74,7 @@ export async function updateSalaVirtual(req, res) {
         res.status(500).json({ error: 'Erro ao atualizar sala virtual' });
     }
 }
+
 
 export async function toggleSalaVirtualStatus(req, res) {
     const { id } = req.params;

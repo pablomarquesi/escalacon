@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button, message, Modal, Progress, Collapse, Select, DatePicker, Input, List, Tooltip, Calendar } from 'antd';
 import { CalendarOutlined } from '@ant-design/icons';
 import HeaderSection from '../common/HeaderSection';
+import { salvarDisponibilidade } from '../../services/disponibilidadeSalaService';
 
 const { Panel } = Collapse;
 const { Option } = Select;
@@ -165,8 +166,33 @@ const DisponibilidadeSalaVirtual = () => {
         }
     }, [importacaoConcluida]);
 
-    const handleSalvarDados = () => {
-        message.success('Dados salvos com sucesso!');
+    const handleSalvarDados = async () => {
+        const salasParaSalvar = [];
+
+        Object.keys(salas).forEach((comarca) => {
+            salas[comarca].forEach((juizado) => {
+                juizado.salas.forEach((sala) => {
+                    Object.keys(sala.datas).forEach((data) => {
+                        const quantidade_audiencias = sala.datas[data].length;
+                        const sala_virtual_id = getIdDaSalaVirtual(sala.sala); // Função fictícia para pegar o ID da sala
+                        salasParaSalvar.push({
+                            sala_virtual_id,
+                            data_audiencia: data,
+                            quantidade_audiencias,
+                            status: 'Ativo' // ou outro status conforme a lógica do seu sistema
+                        });
+                    });
+                });
+            });
+        });
+
+        try {
+            const response = await salvarDisponibilidade(salasParaSalvar);
+            message.success('Dados salvos com sucesso!');
+        } catch (error) {
+            message.error('Erro ao salvar os dados.');
+        }
+
         setConfirmarSalvar(false);
         setImportacaoConcluida(false);
     };

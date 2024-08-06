@@ -8,7 +8,7 @@ export const fetchSalasVirtuais = async () => {
         return response.data;
     } catch (error) {
         console.error('Erro ao buscar salas virtuais:', error);
-        throw error;
+        throw new Error('Erro ao buscar salas virtuais. Por favor, tente novamente mais tarde.');
     }
 };
 
@@ -18,10 +18,9 @@ export const fetchTiposPauta = async () => {
         return response.data;
     } catch (error) {
         console.error('Erro ao buscar tipos de pauta:', error);
-        throw error;
+        throw new Error('Erro ao buscar tipos de pauta. Por favor, tente novamente mais tarde.');
     }
 };
-
 
 export const saveSalaVirtual = async (salaVirtual) => {
     try {
@@ -30,10 +29,17 @@ export const saveSalaVirtual = async (salaVirtual) => {
             : await axios.post(`${API_URL}/salasvirtuais`, salaVirtual);
         return response.data;
     } catch (error) {
-        console.error('Erro ao salvar sala virtual:', error);
-        throw error;
+        if (error.response && error.response.status === 400) {
+            return Promise.reject(error.response.data.error); // Rejeitar a promessa com a mensagem de erro
+        }
+        console.error('Erro ao salvar sala virtual:', error.response || error);
+        return Promise.reject('Erro ao salvar sala virtual. Por favor, tente novamente mais tarde.');
     }
 };
+
+
+
+
 
 export const toggleSalaVirtualStatus = async (id, status) => {
     try {
@@ -41,6 +47,6 @@ export const toggleSalaVirtualStatus = async (id, status) => {
         return response.data;
     } catch (error) {
         console.error('Erro ao alterar status da sala virtual:', error);
-        throw error.response ? error.response.data : error;
+        throw new Error('Erro ao alterar status da sala virtual. Por favor, tente novamente mais tarde.');
     }
 };
