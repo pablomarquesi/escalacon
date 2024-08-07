@@ -2,10 +2,10 @@ import express from 'express';
 import { addConciliador, deleteConciliadores, fetchConciliadores, updateConciliador, toggleConciliadorStatus } from '../controllers/conciliadorController.js';
 import { fetchStatus, addStatus, updateStatus, deleteStatus, toggleStatus } from '../controllers/statusController.js';
 import { addDisponibilidadeConciliador, fetchDisponibilidadesConciliadores, toggleDisponibilidadeConciliadorStatus } from '../controllers/disponibilidadeConciliadorController.js';
-import { fetchDisponibilidadesSalas, addDisponibilidadeSala, toggleDisponibilidadeSalaStatus } from '../controllers/disponibilidadeSalaController.js';
+import { buscarDadosAudiencia  } from '../controllers/disponibilidadeSalaController.js';
 import { addComarca, deleteComarca, fetchComarcas, updateComarca } from '../controllers/comarcaController.js';
 import { fetchJuizados, addJuizado, updateJuizado, deleteJuizado } from '../controllers/juizadoController.js';
-import { fetchSalasVirtuais, addSalaVirtual, updateSalaVirtual, toggleSalaVirtualStatus, fetchTiposPauta  } from '../controllers/salaVirtualController.js';
+import { verificarSalaVirtual, addSalaVirtual, updateSalaVirtual, toggleSalaVirtualStatus, fetchSalasVirtuais, fetchTiposPauta } from '../controllers/salaVirtualController.js';
 import { addTipoDePauta, fetchTiposDePauta, updateTipoDePauta, toggleTipoDePautaStatus } from '../controllers/tipoDePautaController.js';
 
 const router = express.Router();
@@ -39,9 +39,7 @@ export function registerApiRoutes(app) {
     app.patch('/api/disponibilidades-conciliadores/:id', toggleDisponibilidadeConciliadorStatus);
 
     // Rotas para disponibilidades das salas
-    app.get('/api/disponibilidades-salas', fetchDisponibilidadesSalas);
-    app.post('/api/disponibilidades-salas', addDisponibilidadeSala);
-    app.patch('/api/disponibilidades-salas/:id', toggleDisponibilidadeSalaStatus);
+    app.get('/api/disponibilidade-sala', buscarDadosAudiencia);
 
     // Rotas para juizados
     app.get('/api/juizados', fetchJuizados);
@@ -52,6 +50,7 @@ export function registerApiRoutes(app) {
     // Rotas para salas virtuais
     app.get('/api/salasvirtuais', fetchSalasVirtuais);
     app.get('/api/salasvirtuais/tipospauta', fetchTiposPauta);
+    app.post('/api/salasvirtuais/verificar', verificarSalaVirtual);
     app.post('/api/salasvirtuais', addSalaVirtual);
     app.put('/api/salasvirtuais/:id', updateSalaVirtual);
     app.patch('/api/salasvirtuais/:id', toggleSalaVirtualStatus);

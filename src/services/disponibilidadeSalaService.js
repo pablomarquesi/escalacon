@@ -1,14 +1,12 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:3000/api';
-
-export const salvarDisponibilidade = async (disponibilidades) => {
+export const obterPautaAudiencia = async (data, endpoint) => {
+    const url = `https://plenarios-api.tjmt.jus.br/consulta-pje/obter-pauta-audiencia/${data}/${endpoint}`;
     try {
-        const response = await axios.post(`${API_URL}/disponibilidade`, disponibilidades);
-        console.log('salvarDisponibilidade response:', response.data);
+        const response = await axios.get(url);
         return response.data;
     } catch (error) {
-        console.error('Erro ao salvar disponibilidades:', error);
+        console.error('Erro ao buscar pauta de audiência:', error);
         throw error;
     }
 };

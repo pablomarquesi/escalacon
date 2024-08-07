@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Button, message, Modal, Progress, Collapse, Select, DatePicker, Input, List, Tooltip, Calendar } from 'antd';
+import { Button, message, Collapse, Select, DatePicker, List, Tooltip, Calendar, Modal } from 'antd';
 import { CalendarOutlined } from '@ant-design/icons';
 import HeaderSection from '../common/HeaderSection';
-import { salvarDisponibilidade } from '../../services/disponibilidadeSalaService';
+import ImportModal from './ImportModal';
+import LoadingModal from './LoadingModal';
+import { obterPautaAudiencia } from '../../services/disponibilidadeSalaService';
+import { verificarSalaExistente, salvarSalaVirtual } from '../../services/salaVirtualService';
 
 const { Panel } = Collapse;
 const { Option } = Select;
@@ -23,6 +26,7 @@ const DisponibilidadeSalaVirtual = () => {
     const [confirmarSalvar, setConfirmarSalvar] = useState(false);
     const [currentEndpoint, setCurrentEndpoint] = useState('');
     const [currentData, setCurrentData] = useState('');
+    const [currentComarca, setCurrentComarca] = useState('');
 
     const fetchEndpoints = async () => {
         try {
@@ -33,6 +37,7 @@ const DisponibilidadeSalaVirtual = () => {
                     label: item.nome_juizado,
                     value: item.endpoint_id,
                     comarca: item.nome_comarca,
+                    juizado_id: item.juizado_id,
                 }));
                 setEndpoints(endpoints);
             } else {
@@ -60,11 +65,8 @@ const DisponibilidadeSalaVirtual = () => {
     };
 
     const buscarDados = async (data, endpoint) => {
-        const url = `https://plenarios-api.tjmt.jus.br/consulta-pje/obter-pauta-audiencia/${data}/${endpoint}`;
         try {
-            setCurrentEndpoint(endpoint);
-            setCurrentData(data);
-            const response = await fetch(url);
+            const response = await fetch(`http://localhost:3000/api/disponibilidade-sala?data=${data}&endpoint=${endpoint}`);
             if (response.ok) {
                 return await response.json();
             } else {
@@ -94,32 +96,46 @@ const DisponibilidadeSalaVirtual = () => {
             message.warning('Por favor, selecione pelo menos um endpoint.');
             return;
         }
-
+    
         if (!selectedMonth) {
             message.warning('Por favor, selecione o mês.');
             return;
         }
-
+    
         const [ano, mes] = [selectedMonth.year(), selectedMonth.month() + 1];
-
-        setLoading(true);
+    
+        setLoading(true); // Exibe o modal de loading
         setIsModalVisible(false);
-
+    
         const datasDoMes = gerarDatasDoMes(ano, mes);
         const totalRequests = datasDoMes.length * selectedEndpoints.length;
         let completedRequests = 0;
         const salasImportadas = {};
-
+    
         for (const data of datasDoMes) {
-            const fetchPromises = selectedEndpoints.map(endpoint => 
-                buscarDados(data, endpoint).then(dados => {
+            const fetchPromises = selectedEndpoints.map(endpoint =>
+                buscarDados(data, endpoint).then(async (dados) => {
                     if (dados) {
                         const infoExtraida = extrairInfo(dados);
                         if (infoExtraida.length > 0) {
-                            infoExtraida.forEach(info => {
+                            for (const info of infoExtraida) {
                                 const dataSimples = info.dataAudiencia.split('T')[0];
+                                const selectedEndpoint = endpoints.find(ep => ep.value === endpoint);
                                 if (!salasImportadas[endpoint]) {
                                     salasImportadas[endpoint] = {};
+                                }
+                                const salaExistente = await verificarSalaExistente(selectedEndpoint.juizado_id, info.sala);
+                                if (!salaExistente) {
+                                    try {
+                                        await salvarSalaVirtual({
+                                            juizado_id: selectedEndpoint.juizado_id,
+                                            nome_sala_virtual: info.sala,
+                                            tipo_pauta_id: 1,
+                                        });
+                                    } catch (error) {
+                                        console.error(`Erro ao salvar a sala ${info.sala}:`, error);
+                                        continue;
+                                    }
                                 }
                                 if (!salasImportadas[endpoint][info.sala]) {
                                     salasImportadas[endpoint][info.sala] = {};
@@ -128,16 +144,22 @@ const DisponibilidadeSalaVirtual = () => {
                                     salasImportadas[endpoint][info.sala][dataSimples] = [];
                                 }
                                 salasImportadas[endpoint][info.sala][dataSimples].push(info);
-                            });
+                            }
+                            setCurrentEndpoint(selectedEndpoint?.label || 'Desconhecido');
+                            setCurrentComarca(selectedEndpoint?.comarca || 'Desconhecida');
+                            setCurrentData(dataSimples);
                         }
                     }
                     completedRequests++;
                     setProgress(Math.floor((completedRequests / totalRequests) * 100));
+                    console.log(`Progresso: ${(completedRequests / totalRequests) * 100}%`);
+                }).catch(error => {
+                    console.error(`Erro ao buscar dados para ${endpoint} na data ${data}:`, error);
                 })
             );
             await Promise.all(fetchPromises);
         }
-
+    
         const groupedByComarca = Object.keys(salasImportadas).reduce((acc, endpoint) => {
             const comarca = endpoints.find(ep => ep.value === parseInt(endpoint))?.comarca;
             if (!acc[comarca]) {
@@ -153,49 +175,12 @@ const DisponibilidadeSalaVirtual = () => {
             });
             return acc;
         }, {});
-
+    
         setSalas(groupedByComarca);
         setLoading(false);
         setImportacaoConcluida(true);
     };
-
-    useEffect(() => {
-        if (importacaoConcluida) {
-            message.success('Importação concluída com sucesso!');
-            setConfirmarSalvar(true);
-        }
-    }, [importacaoConcluida]);
-
-    const handleSalvarDados = async () => {
-        const salasParaSalvar = [];
-
-        Object.keys(salas).forEach((comarca) => {
-            salas[comarca].forEach((juizado) => {
-                juizado.salas.forEach((sala) => {
-                    Object.keys(sala.datas).forEach((data) => {
-                        const quantidade_audiencias = sala.datas[data].length;
-                        const sala_virtual_id = getIdDaSalaVirtual(sala.sala); // Função fictícia para pegar o ID da sala
-                        salasParaSalvar.push({
-                            sala_virtual_id,
-                            data_audiencia: data,
-                            quantidade_audiencias,
-                            status: 'Ativo' // ou outro status conforme a lógica do seu sistema
-                        });
-                    });
-                });
-            });
-        });
-
-        try {
-            const response = await salvarDisponibilidade(salasParaSalvar);
-            message.success('Dados salvos com sucesso!');
-        } catch (error) {
-            message.error('Erro ao salvar os dados.');
-        }
-
-        setConfirmarSalvar(false);
-        setImportacaoConcluida(false);
-    };
+    
 
     const handleCancelarSalvar = () => {
         message.info('Os dados importados não foram salvos.');
@@ -203,8 +188,11 @@ const DisponibilidadeSalaVirtual = () => {
         setImportacaoConcluida(false);
     };
 
+    const handleSalvarDados = () => {
+        // Implementar a lógica de salvamento dos dados no banco de dados aqui
+    };
+
     const handleEndpointChange = (value) => {
-        // Se "Selecionar Todos" for selecionado, selecione todos os endpoints disponíveis
         if (value.includes('all')) {
             setSelectedEndpoints(endpoints.map(endpoint => endpoint.value));
         } else {
@@ -330,68 +318,26 @@ const DisponibilidadeSalaVirtual = () => {
                     ))}
                 </Collapse>
             </div>
-            <Modal
-                title="Selecione os Endpoints e o Mês"
+            <ImportModal
                 visible={isModalVisible}
-                onCancel={handleCancel}
-                footer={[
-                    <Button key="cancel" onClick={handleCancel}>
-                        Cancelar
-                    </Button>,
-                    <Button key="import" type="primary" onClick={handleImportarSalas}>
-                        Importar
-                    </Button>,
-                ]}
-            >
-                <div>
-                    <Select
-                        mode="multiple"
-                        placeholder="Selecione os endpoints"
-                        onChange={handleEndpointChange}
-                        style={{ width: '100%' }}
-                        optionLabelProp="label"
-                        value={selectedEndpoints.includes('all') ? endpoints.map(endpoint => endpoint.value) : selectedEndpoints}
-                    >
-                        <Option key="all" value="all">Selecionar Todos</Option>
-                        {endpoints.map(endpoint => (
-                            <Option key={endpoint.value} value={endpoint.value} label={endpoint.label}>
-                                {endpoint.label}
-                            </Option>
-                        ))}
-                    </Select>
-                </div>
-                <div style={{ marginTop: '16px' }}>
-                    <DatePicker
-                        picker="month"
-                        placeholder="Selecione o mês"
-                        onChange={handleMonthChange}
-                        style={{ width: '100%' }}
-                    />
-                </div>
-            </Modal>
-            {(loading || confirmarSalvar) && (
-                <Modal
-                    visible={loading || confirmarSalvar}
-                    footer={null}
-                    closable={false}
-                    centered
-                >
-                    <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                        <Progress type="circle" percent={progress} />
-                        <div>
-                            <p>{`Importando dados do endpoint: ${currentEndpoint}`}</p>
-                            <p>{`Data: ${currentData}`}</p>
-                        </div>
-                        {importacaoConcluida && (
-                            <div>
-                                <p>Deseja salvar os dados importados no banco de dados?</p>
-                                <Button type="primary" onClick={handleSalvarDados}>Salvar</Button>
-                                <Button style={{ marginLeft: '10px' }} onClick={handleCancelarSalvar}>Cancelar</Button>
-                            </div>
-                        )}
-                    </div>
-                </Modal>
-            )}
+                endpoints={endpoints}
+                selectedEndpoints={selectedEndpoints}
+                selectedMonth={selectedMonth}
+                handleEndpointChange={handleEndpointChange}
+                handleMonthChange={handleMonthChange}
+                handleImportarSalas={handleImportarSalas}
+                handleCancel={handleCancel}
+            />
+            <LoadingModal
+                visible={loading}
+                progress={progress}
+                currentEndpoint={currentEndpoint}
+                currentComarca={currentComarca}
+                currentData={currentData}
+                importacaoConcluida={importacaoConcluida}
+                handleSalvarDados={handleSalvarDados}
+                handleCancelarSalvar={handleCancelarSalvar}
+            />
             <Modal
                 title={`Calendário de Audiências - ${selectedSala}`}
                 visible={calendarModalVisible}

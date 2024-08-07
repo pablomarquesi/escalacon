@@ -26,6 +26,27 @@ export async function fetchSalasVirtuais(req, res) {
     }
 }
 
+
+export async function verificarSalaVirtual(req, res) {
+    const { juizado_id, nome_sala_virtual } = req.body;
+    try {
+        const [existingSala] = await db.query(
+            'SELECT * FROM sala_virtual WHERE juizado_id = ? AND nome_sala_virtual = ?',
+            [juizado_id, nome_sala_virtual]
+        );
+
+        if (existingSala.length > 0) {
+            return res.status(200).json({ exists: true });
+        } else {
+            return res.status(200).json({ exists: false });
+        }
+    } catch (error) {
+        console.error('Erro ao verificar sala virtual:', error);
+        res.status(500).json({ error: 'Erro ao verificar sala virtual' });
+    }
+}
+
+
 export async function addSalaVirtual(req, res) {
     const { juizado_id, nome_sala_virtual, tipo_pauta_id } = req.body;
     try {

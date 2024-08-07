@@ -51,7 +51,6 @@ const SalaVirtual = () => {
         }
     };
 
-
     const handleFinish = async (values) => {
         try {
             await saveSalaVirtual({ ...values, sala_virtual_id: editingSalaVirtual?.sala_virtual_id });
@@ -65,7 +64,6 @@ const SalaVirtual = () => {
             message.error(`Erro: ${error}`);
         }
     };
-    
 
     const handleEdit = (record) => {
         setEditingSalaVirtual(record);
@@ -112,6 +110,10 @@ const SalaVirtual = () => {
         return acc;
     }, {});
 
+    const sortedGroupedSalasVirtuais = Object.entries(groupedSalasVirtuais).sort(([juizadoA], [juizadoB]) =>
+        juizadoA.localeCompare(juizadoB)
+    );
+
     return (
         <div>
             <HeaderSection
@@ -129,7 +131,7 @@ const SalaVirtual = () => {
             </HeaderSection>
             <div className="table-container">
                 <Collapse>
-                    {Object.entries(groupedSalasVirtuais).map(([juizado, salas]) => (
+                    {sortedGroupedSalasVirtuais.map(([juizado, salas]) => (
                         <Panel header={juizado} key={juizado}>
                             <List
                                 itemLayout="horizontal"
