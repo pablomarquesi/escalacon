@@ -9,9 +9,9 @@ const LoadingModal = ({ visible, progress, currentEndpoint, currentComarca, curr
             closable={false}
             centered
         >
-            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                <Progress type="circle" percent={progress} />
-                <div style={{ marginTop: '20px' }}>
+            <div className="loading-modal-content">
+                <Progress className="loading-modal-progress" type="circle" percent={progress} />
+                <div className="loading-modal-details">
                     <p><strong>Juizado Atual:</strong> {currentEndpoint}</p>
                     <p><strong>Comarca:</strong> {currentComarca}</p>
                     <p><strong>Data em Processamento:</strong> {currentData}</p>

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Button, message, Collapse, Select, DatePicker, List, Tooltip, Calendar, Modal } from 'antd';
-import { CalendarOutlined } from '@ant-design/icons';
 import HeaderSection from '../common/HeaderSection';
 import ImportModal from './ImportModal';
 import LoadingModal from './LoadingModal';
 import { obterPautaAudiencia } from '../../services/disponibilidadeSalaService';
 import { verificarSalaExistente, salvarSalaVirtual } from '../../services/salaVirtualService';
+import './DisponibilidadeSalaVirtual.css';  // Importe o CSS aqui
 
 const { Panel } = Collapse;
 const { Option } = Select;
@@ -27,6 +27,8 @@ const DisponibilidadeSalaVirtual = () => {
     const [currentEndpoint, setCurrentEndpoint] = useState('');
     const [currentData, setCurrentData] = useState('');
     const [currentComarca, setCurrentComarca] = useState('');
+    const [resumoImportacao, setResumoImportacao] = useState({});
+    const [importSuccess, setImportSuccess] = useState(false);
 
     const fetchEndpoints = async () => {
         try {
@@ -96,31 +98,32 @@ const DisponibilidadeSalaVirtual = () => {
             message.warning('Por favor, selecione pelo menos um endpoint.');
             return;
         }
-    
+
         if (!selectedMonth) {
             message.warning('Por favor, selecione o mês.');
             return;
         }
-    
+
         const [ano, mes] = [selectedMonth.year(), selectedMonth.month() + 1];
-    
-        setLoading(true); // Exibe o modal de loading
-        setIsModalVisible(false);
-    
+
+        setLoading(true);
+        setIsModalVisible(true); // Não feche o modal de importação
+        setImportSuccess(false); // Reseta o estado de sucesso
+
         const datasDoMes = gerarDatasDoMes(ano, mes);
         const totalRequests = datasDoMes.length * selectedEndpoints.length;
         let completedRequests = 0;
         const salasImportadas = {};
-    
+
         for (const data of datasDoMes) {
             const fetchPromises = selectedEndpoints.map(endpoint =>
                 buscarDados(data, endpoint).then(async (dados) => {
                     if (dados) {
                         const infoExtraida = extrairInfo(dados);
                         if (infoExtraida.length > 0) {
+                            const selectedEndpoint = endpoints.find(ep => ep.value === endpoint);
                             for (const info of infoExtraida) {
                                 const dataSimples = info.dataAudiencia.split('T')[0];
-                                const selectedEndpoint = endpoints.find(ep => ep.value === endpoint);
                                 if (!salasImportadas[endpoint]) {
                                     salasImportadas[endpoint] = {};
                                 }
@@ -147,19 +150,16 @@ const DisponibilidadeSalaVirtual = () => {
                             }
                             setCurrentEndpoint(selectedEndpoint?.label || 'Desconhecido');
                             setCurrentComarca(selectedEndpoint?.comarca || 'Desconhecida');
-                            setCurrentData(dataSimples);
+                            setCurrentData(data);
                         }
                     }
                     completedRequests++;
                     setProgress(Math.floor((completedRequests / totalRequests) * 100));
-                    console.log(`Progresso: ${(completedRequests / totalRequests) * 100}%`);
-                }).catch(error => {
-                    console.error(`Erro ao buscar dados para ${endpoint} na data ${data}:`, error);
                 })
             );
             await Promise.all(fetchPromises);
         }
-    
+
         const groupedByComarca = Object.keys(salasImportadas).reduce((acc, endpoint) => {
             const comarca = endpoints.find(ep => ep.value === parseInt(endpoint))?.comarca;
             if (!acc[comarca]) {
@@ -175,17 +175,23 @@ const DisponibilidadeSalaVirtual = () => {
             });
             return acc;
         }, {});
-    
+
         setSalas(groupedByComarca);
+        setResumoImportacao(groupedByComarca); // Define o resumo da importação
         setLoading(false);
-        setImportacaoConcluida(true);
+        setImportSuccess(true); // Marca que a importação foi concluída com sucesso
     };
-    
 
     const handleCancelarSalvar = () => {
         message.info('Os dados importados não foram salvos.');
         setConfirmarSalvar(false);
         setImportacaoConcluida(false);
+        setImportSuccess(false); // Reseta o estado de sucesso da importação
+    };
+
+    const handleConfirmarImportacao = () => {
+        setIsModalVisible(false);
+        setImportSuccess(false);
     };
 
     const handleSalvarDados = () => {
@@ -213,7 +219,11 @@ const DisponibilidadeSalaVirtual = () => {
     };
 
     const handleCancel = () => {
-        setIsModalVisible(false);
+        if (!importSuccess) {
+            setIsModalVisible(false);
+        } else {
+            message.warning('Finalize a importação antes de fechar o modal.');
+        }
     };
 
     const handleCalendarModalCancel = () => {
@@ -327,6 +337,9 @@ const DisponibilidadeSalaVirtual = () => {
                 handleMonthChange={handleMonthChange}
                 handleImportarSalas={handleImportarSalas}
                 handleCancel={handleCancel}
+                importSuccess={importSuccess}
+                resumoImportacao={resumoImportacao}
+                handleConfirmarImportacao={handleConfirmarImportacao}
             />
             <LoadingModal
                 visible={loading}

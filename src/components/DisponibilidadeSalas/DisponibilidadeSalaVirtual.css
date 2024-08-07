@@ -1,0 +1,67 @@
+/* DisponibilidadeSalaVirtual.css */
+
+/* Estilo para o contêiner principal */
+.table-container {
+    padding: 16px;
+    background-color: #fff;
+    border-radius: 8px;
+}
+
+/* Estilo para os headers dos painéis */
+.ant-collapse-header {
+    font-weight: bold;
+}
+
+/* Estilo para o modal de importação */
+.import-modal {
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+/* Estilo para a lista de salas */
+.sala-list-item {
+    font-size: 14px;
+}
+
+/* Estilo para o botão de ver calendário */
+.calendar-button {
+    color: #1890ff;
+    font-size: 16px;
+}
+
+/* Estilo para o modal de loading */
+.loading-modal-content {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.loading-modal-progress {
+    margin-bottom: 20px;
+}
+
+.loading-modal-details p {
+    margin: 0;
+    font-size: 14px;
+}
+
+/* Estilo para o resumo da importação */
+.import-summary {
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.import-summary h3 {
+    font-weight: bold;
+}
+
+.import-summary h4 {
+    margin-top: 10px;
+    font-weight: normal;
+}
+
+.import-summary ul {
+    padding-left: 20px;
+    list-style-type: disc;
+}
