@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button, message, Collapse, Select, DatePicker, List, Tooltip, Calendar, Modal } from 'antd';
+import { CalendarOutlined } from '@ant-design/icons';  // Adicione esta linha
 import HeaderSection from '../common/HeaderSection';
 import ImportModal from './ImportModal';
 import LoadingModal from './LoadingModal';
