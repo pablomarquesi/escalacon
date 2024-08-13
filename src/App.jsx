@@ -15,6 +15,7 @@ import SalaVirtual from "./components/SalaVirtual/SalaVirtual";
 import TipoDePauta from "./components/TipoDePauta/TipoDePauta";
 import UserMenu from './components/UserMenu/UserMenu';
 import Login from './components/Login/Login';
+import AudienciaList from './components/Audiencias/AudienciaList';
 import './index.css';
 
 const { Header, Sider, Content } = Layout;
@@ -73,6 +74,7 @@ function App() {
               <Route path="/cadastro/conciliador" element={isAuthenticated ? <CadastroConciliador /> : <Navigate to="/login" />} />
               <Route path="/cadastro/disponibilidade" element={isAuthenticated ? <DisponibilidadeConciliador /> : <Navigate to="/login" />} />
               <Route path="cadastro/disponibilidade/salavirtual" element={isAuthenticated ? <DisponibilidadeSalaVirtual /> : <Navigate to="/login" />} />
+              <Route path="/audiencias" element={isAuthenticated ? <AudienciaList /> : <Navigate to="/login" />} />
               <Route path="/cadastro/status" element={isAuthenticated ? <CadastroStatus /> : <Navigate to="/login" />} />
               <Route path="/cadastro/tipodepauta" element={isAuthenticated ? <TipoDePauta /> : <Navigate to="/login" />} />
               <Route path="/locais/comarca" element={isAuthenticated ? <CadastroComarca /> : <Navigate to="/login" />} />

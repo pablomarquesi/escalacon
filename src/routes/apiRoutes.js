@@ -7,6 +7,7 @@ import { addComarca, deleteComarca, fetchComarcas, updateComarca } from '../cont
 import { fetchJuizados, addJuizado, updateJuizado, deleteJuizado } from '../controllers/juizadoController.js';
 import { verificarSalaVirtual, addSalaVirtual, updateSalaVirtual, toggleSalaVirtualStatus, fetchSalasVirtuais, fetchTiposPauta } from '../controllers/salaVirtualController.js';
 import { addTipoDePauta, fetchTiposDePauta, updateTipoDePauta, toggleTipoDePautaStatus } from '../controllers/tipoDePautaController.js';
+import { getAudiencias, createAudiencia, updateAudienciaById, deleteAudienciaById } from '../controllers/audienciaController.js';
 
 const router = express.Router();
 
@@ -60,6 +61,11 @@ export function registerApiRoutes(app) {
     app.post('/api/tipodepauta', addTipoDePauta);
     app.put('/api/tipodepauta/:id', updateTipoDePauta);
     app.patch('/api/tipodepauta/:id', toggleTipoDePautaStatus);
+
+    app.get('/api/audiencias', getAudiencias);
+    app.post('/api/audiencias', createAudiencia);
+    app.put('/api/audiencias/:id', updateAudienciaById);
+    app.delete('/api/audiencias/:id', deleteAudienciaById);
 
 }
 

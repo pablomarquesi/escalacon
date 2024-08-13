@@ -36,8 +36,8 @@ const MenuList = ({ collapsed }) => {
             case 'salavirtual':
                 navigate('/cadastro/disponibilidade/salavirtual');
                 break;
-            case 'conciliadores':
-                navigate('/cadastro/disponibilidade');
+            case 'audiencias':
+                navigate('/audiencias');  // Aqui, certifique-se de que a navegação está correta
                 break;
             case 'status':
                 navigate('/cadastro/status');
@@ -61,6 +61,7 @@ const MenuList = ({ collapsed }) => {
                 break;
         }
     };
+    
 
     const items = [
         {
@@ -97,7 +98,13 @@ const MenuList = ({ collapsed }) => {
                             key: 'salavirtual',
                             icon: <VideoCameraOutlined />,
                             label: 'Sala Virtual'
-                        }
+                        },
+                        {
+                            key: 'audiencias',
+                            icon: <CalendarOutlined />,
+                            label: 'Audiências'
+                          }
+                          
                     ]
                 },
                 {
