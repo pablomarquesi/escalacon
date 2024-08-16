@@ -2,32 +2,25 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:3000/api';
 
-export const fetchDisponibilidadesConciliadores = async () => {
+export const importarAudiencias = async (juizadoId, audiencias) => {
     try {
-        const response = await axios.get(`${API_URL}/disponibilidades`);
+        const response = await axios.post(`${API_URL}/escala/importar`, {
+            juizado_id: juizadoId,
+            audiencias
+        });
         return response.data;
     } catch (error) {
-        console.error('Erro ao buscar disponibilidades:', error);
-        throw error;
+        console.error('Erro ao importar audiências:', error);
+        throw new Error('Erro ao importar audiências. Por favor, tente novamente mais tarde.');
     }
 };
 
-export const fetchSalasVirtuais = async () => {
+export const getEscala = async (juizadoId) => {
     try {
-        const response = await axios.get(`${API_URL}/salasvirtuais`);
+        const response = await axios.get(`${API_URL}/escala/${juizadoId}`);
         return response.data;
     } catch (error) {
-        console.error('Erro ao buscar salas virtuais:', error);
-        throw error;
-    }
-};
-
-export const fetchJuizados = async () => {
-    try {
-        const response = await axios.get(`${API_URL}/juizados`);
-        return response.data;
-    } catch (error) {
-        console.error('Erro ao buscar juizados:', error);
-        throw error;
+        console.error('Erro ao buscar escala:', error);
+        throw new Error('Erro ao buscar escala. Por favor, tente novamente mais tarde.');
     }
 };

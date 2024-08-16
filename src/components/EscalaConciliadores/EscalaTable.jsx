@@ -31,7 +31,7 @@ const EscalaTable = ({
                     <React.Fragment key={endpoint}>
                         <tr>
                             <td colSpan={diasDoMes + 1} style={{ textAlign: 'center', fontWeight: 'bold' }}>
-                                Endpoint {endpoint}
+                                {endpoint}
                             </td>
                         </tr>
                         {Object.keys(salasDict[endpoint]).map(sala => (
@@ -42,7 +42,7 @@ const EscalaTable = ({
                                 {[...Array(diasDoMes).keys()].map(d => {
                                     const dia = d + 1;
                                     const formattedDate = `${ano}-${formatDayMonth(mes)}-${formatDayMonth(dia)}`;
-                                    const isScheduled = salasDict[endpoint][sala].includes(formattedDate);
+                                    const isScheduled = salasDict[endpoint][sala].some(date => date.startsWith(formattedDate));
                                     const isWeekend = new Date(ano, mes - 1, dia).getDay() === 0 || new Date(ano, mes - 1, dia).getDay() === 6;
                                     return (
                                         <Tooltip key={dia} title={isScheduled ? `Audiência` : ''}>

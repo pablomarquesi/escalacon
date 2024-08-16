@@ -2,12 +2,13 @@ import express from 'express';
 import { addConciliador, deleteConciliadores, fetchConciliadores, updateConciliador, toggleConciliadorStatus } from '../controllers/conciliadorController.js';
 import { fetchStatus, addStatus, updateStatus, deleteStatus, toggleStatus } from '../controllers/statusController.js';
 import { addDisponibilidadeConciliador, fetchDisponibilidadesConciliadores, toggleDisponibilidadeConciliadorStatus } from '../controllers/disponibilidadeConciliadorController.js';
-import { buscarDadosAudiencia  } from '../controllers/disponibilidadeSalaController.js';
+import { buscarDadosAudiencia } from '../controllers/disponibilidadeSalaController.js';
 import { addComarca, deleteComarca, fetchComarcas, updateComarca } from '../controllers/comarcaController.js';
 import { fetchJuizados, addJuizado, updateJuizado, deleteJuizado } from '../controllers/juizadoController.js';
 import { verificarSalaVirtual, addSalaVirtual, updateSalaVirtual, toggleSalaVirtualStatus, fetchSalasVirtuais, fetchTiposPauta } from '../controllers/salaVirtualController.js';
 import { addTipoDePauta, fetchTiposDePauta, updateTipoDePauta, toggleTipoDePautaStatus } from '../controllers/tipoDePautaController.js';
 import { getAudiencias, createAudiencia, updateAudienciaById, deleteAudienciaById } from '../controllers/audienciaController.js';
+import { importarAudiencias, getEscala } from '../controllers/escalaController.js'; // Importando o novo controller
 
 const router = express.Router();
 
@@ -62,11 +63,15 @@ export function registerApiRoutes(app) {
     app.put('/api/tipodepauta/:id', updateTipoDePauta);
     app.patch('/api/tipodepauta/:id', toggleTipoDePautaStatus);
 
+    // Rotas para audiências
     app.get('/api/audiencias', getAudiencias);
     app.post('/api/audiencias', createAudiencia);
     app.put('/api/audiencias/:id', updateAudienciaById);
     app.delete('/api/audiencias/:id', deleteAudienciaById);
 
+    // Rotas para escala
+    app.post('/api/escala/importar', importarAudiencias); // Rota para importar audiências
+    app.get('/api/escala/:juizado_id', getEscala); // Rota para obter a escala
 }
 
 export default router;
