@@ -14,7 +14,6 @@ const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 
 const EscalaConciliadores = () => {
     const [mes, setMes] = useState(new Date().getMonth() + 1);
     const [ano, setAno] = useState(new Date().getFullYear());
-    const [juizadoId, setJuizadoId] = useState(99); // Ajuste conforme necessário
     const [schedule, setSchedule] = useState({});
     const [loading, setLoading] = useState(false);
     const [progress, setProgress] = useState(0);
@@ -36,41 +35,42 @@ const EscalaConciliadores = () => {
         return datas;
     }, []);
 
-    const extrairInfo = useCallback((dados) => {
-        const infoExtraida = [];
-        for (const item of dados) {
-            const dataAudiencia = item.dataAudiencia;
-            const sala = item.sala;
-            if (dataAudiencia && sala) {
-                infoExtraida.push({ dataAudiencia, sala });
+    const fetchJuizados = useCallback(async () => {
+        try {
+            const response = await fetch(`${API_URL}/juizados`);
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw new Error('Erro ao buscar juizados');
             }
+        } catch (error) {
+            console.error('Erro ao buscar juizados:', error);
+            message.error('Erro ao buscar juizados.');
+            return [];
         }
-        return infoExtraida;
-    }, []);
+    }, [API_URL]);
 
     // Função para buscar a escala da API local
     const fetchEscalaFromAPI = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${API_URL}/escala/${juizadoId}`);
+            const response = await fetch(`${API_URL}/audiencias?mes=${mes}&ano=${ano}`);
             if (response.ok) {
                 const data = await response.json();
                 const salasDict = {};
 
                 data.forEach(audiencia => {
                     const { nome_sala_virtual, data_audiencia, nome_juizado } = audiencia;
-                    const endpoint = nome_juizado; // ou outro identificador único se necessário
-
-                    if (!salasDict[endpoint]) {
-                        salasDict[endpoint] = {};
+                    if (!salasDict[nome_juizado]) {
+                        salasDict[nome_juizado] = {};
                     }
-                    if (!salasDict[endpoint][nome_sala_virtual]) {
-                        salasDict[endpoint][nome_sala_virtual] = [];
+                    if (!salasDict[nome_juizado][nome_sala_virtual]) {
+                        salasDict[nome_juizado][nome_sala_virtual] = [];
                     }
-                    salasDict[endpoint][nome_sala_virtual].push(data_audiencia);
+                    salasDict[nome_juizado][nome_sala_virtual].push(data_audiencia);
                 });
 
-                setSchedule(prevSchedule => ({ ...prevSchedule, [`${ano}-${mes}`]: salasDict }));
+                setSchedule({ [`${ano}-${mes}`]: salasDict });
                 setLoadedMonths(prevLoadedMonths => ({ ...prevLoadedMonths, [`${ano}-${mes}`]: true }));
             } else {
                 message.error('Erro ao buscar dados da escala.');
@@ -81,7 +81,7 @@ const EscalaConciliadores = () => {
         } finally {
             setLoading(false);
         }
-    }, [mes, ano, juizadoId]);
+    }, [mes, ano, API_URL]);
 
     // Função para importar as audiências e cadastrar salas virtuais
     const handleImportarSalas = useCallback(async () => {
@@ -89,27 +89,32 @@ const EscalaConciliadores = () => {
         setProgress(0);
 
         try {
-            const endpoints = [380, 374, 394, 532, 369, 378];
+            const juizados = await fetchJuizados();
             const datasDoMes = gerarDatasDoMes(ano, mes);
             const audienciasPorDia = {};
 
-            const totalRequests = datasDoMes.length * endpoints.length;
+            const totalRequests = datasDoMes.length * juizados.length;
             let completedRequests = 0;
 
             for (const data of datasDoMes) {
-                const fetchPromises = endpoints.map(async endpoint => {
-                    const url = `https://plenarios-api.tjmt.jus.br/consulta-pje/obter-pauta-audiencia/${data}/${endpoint}`;
+                const fetchPromises = juizados.map(async juizado => {
+                    const { juizado_id, endpoint_id } = juizado;
+                    const url = `https://plenarios-api.tjmt.jus.br/consulta-pje/obter-pauta-audiencia/${data}/${endpoint_id}`;
                     try {
                         const response = await fetch(url);
                         if (response.ok) {
                             const dados = await response.json();
                             if (dados) {
-                                const infoExtraida = extrairInfo(dados);
+                                const infoExtraida = dados.map(item => ({
+                                    dataAudiencia: item.dataAudiencia,
+                                    sala: item.sala,
+                                    juizado_id: juizado_id
+                                }));
                                 if (infoExtraida.length > 0) {
-                                    if (!audienciasPorDia[endpoint]) {
-                                        audienciasPorDia[endpoint] = {};
+                                    if (!audienciasPorDia[juizado_id]) {
+                                        audienciasPorDia[juizado_id] = {};
                                     }
-                                    audienciasPorDia[endpoint][data] = infoExtraida;
+                                    audienciasPorDia[juizado_id][data] = infoExtraida;
                                 }
                             }
                         } else {
@@ -126,7 +131,7 @@ const EscalaConciliadores = () => {
             }
 
             // Inserção de dados no banco local
-            for (const [endpoint, audiencias] of Object.entries(audienciasPorDia)) {
+            for (const [juizado_id, audiencias] of Object.entries(audienciasPorDia)) {
                 for (const [data, audienciasList] of Object.entries(audiencias)) {
                     for (const audiencia of audienciasList) {
                         const { sala } = audiencia;
@@ -138,7 +143,7 @@ const EscalaConciliadores = () => {
                                 'Content-Type': 'application/json',
                             },
                             body: JSON.stringify({ 
-                                juizado_id: juizadoId, 
+                                juizado_id: juizado_id, 
                                 nome_sala_virtual: sala 
                             }),
                         });
@@ -154,7 +159,7 @@ const EscalaConciliadores = () => {
                                     'Content-Type': 'application/json',
                                 },
                                 body: JSON.stringify({
-                                    juizado_id: juizadoId,
+                                    juizado_id: juizado_id,
                                     nome_sala_virtual: sala,
                                     tipo_pauta_id: 1 // Use o valor correto aqui se necessário
                                 }),
@@ -173,7 +178,7 @@ const EscalaConciliadores = () => {
                                 'Content-Type': 'application/json',
                             },
                             body: JSON.stringify({
-                                juizado_id: juizadoId,
+                                juizado_id: juizado_id,
                                 sala_virtual_id: salaVirtualId,
                                 data_audiencia: data,
                                 status: 'Ativo'
@@ -192,7 +197,7 @@ const EscalaConciliadores = () => {
         } finally {
             setLoading(false);
         }
-    }, [API_URL, mes, ano, juizadoId, gerarDatasDoMes, extrairInfo, fetchEscalaFromAPI]);
+    }, [API_URL, mes, ano, gerarDatasDoMes, fetchEscalaFromAPI, fetchJuizados]);
 
     useEffect(() => {
         fetchEscalaFromAPI();
@@ -217,15 +222,15 @@ const EscalaConciliadores = () => {
     }, [mes, ano]);
 
     const diasDoMes = useMemo(() => {
-        return new Date(ano, mes, 0).getDate();
+        return getDaysInMonth(mes, ano);
     }, [mes, ano]);
 
     const currentMonthKey = `${ano}-${mes}`;
     const currentSchedule = schedule[currentMonthKey];
 
     // Verifica se existe alguma audiência agendada para o mês corrente
-    const hasScheduleData = currentSchedule && Object.keys(currentSchedule).some(endpoint => {
-        return Object.keys(currentSchedule[endpoint]).some(sala => currentSchedule[endpoint][sala].some(date => {
+    const hasScheduleData = currentSchedule && Object.keys(currentSchedule).some(juizado => {
+        return Object.keys(currentSchedule[juizado]).some(sala => currentSchedule[juizado][sala].some(date => {
             const audienciaMes = new Date(date).getMonth() + 1;
             return audienciaMes === mes;
         }));
@@ -251,7 +256,7 @@ const EscalaConciliadores = () => {
             </Row>
             {loading && (
                 <Modal
-                    visible={loading}
+                    open={loading}
                     footer={null}
                     closable={false}
                     centered
