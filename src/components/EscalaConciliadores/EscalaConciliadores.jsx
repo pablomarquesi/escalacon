@@ -21,6 +21,16 @@ const EscalaConciliadores = () => {
 
     const API_URL = 'http://localhost:3000/api'; // Base URL da sua API
 
+    const fetchJuizados = useCallback(async () => {
+        const response = await fetch(`${API_URL}/juizados`);
+        if (response.ok) {
+            return await response.json();
+        } else {
+            message.error('Erro ao buscar juizados.');
+            return [];
+        }
+    }, [API_URL]);
+
     const getDaysInMonth = useCallback((month, year) => {
         return new Date(year, month, 0).getDate();
     }, []);
@@ -35,42 +45,29 @@ const EscalaConciliadores = () => {
         return datas;
     }, []);
 
-    const fetchJuizados = useCallback(async () => {
-        try {
-            const response = await fetch(`${API_URL}/juizados`);
-            if (response.ok) {
-                return response.json();
-            } else {
-                throw new Error('Erro ao buscar juizados');
-            }
-        } catch (error) {
-            console.error('Erro ao buscar juizados:', error);
-            message.error('Erro ao buscar juizados.');
-            return [];
-        }
-    }, [API_URL]);
-
     // Função para buscar a escala da API local
     const fetchEscalaFromAPI = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${API_URL}/audiencias?mes=${mes}&ano=${ano}`);
+            const response = await fetch(`${API_URL}/audiencias`); // Ajuste o endpoint conforme necessário
             if (response.ok) {
                 const data = await response.json();
                 const salasDict = {};
-
+    
                 data.forEach(audiencia => {
                     const { nome_sala_virtual, data_audiencia, nome_juizado } = audiencia;
-                    if (!salasDict[nome_juizado]) {
-                        salasDict[nome_juizado] = {};
+                    const endpoint = nome_juizado; // ou outro identificador único se necessário
+    
+                    if (!salasDict[endpoint]) {
+                        salasDict[endpoint] = {};
                     }
-                    if (!salasDict[nome_juizado][nome_sala_virtual]) {
-                        salasDict[nome_juizado][nome_sala_virtual] = [];
+                    if (!salasDict[endpoint][nome_sala_virtual]) {
+                        salasDict[endpoint][nome_sala_virtual] = [];
                     }
-                    salasDict[nome_juizado][nome_sala_virtual].push(data_audiencia);
+                    salasDict[endpoint][nome_sala_virtual].push(data_audiencia);
                 });
-
-                setSchedule({ [`${ano}-${mes}`]: salasDict });
+    
+                setSchedule(prevSchedule => ({ ...prevSchedule, [`${ano}-${mes}`]: salasDict }));
                 setLoadedMonths(prevLoadedMonths => ({ ...prevLoadedMonths, [`${ano}-${mes}`]: true }));
             } else {
                 message.error('Erro ao buscar dados da escala.');
@@ -81,9 +78,8 @@ const EscalaConciliadores = () => {
         } finally {
             setLoading(false);
         }
-    }, [mes, ano, API_URL]);
+    }, [mes, ano, API_URL]);    
 
-    // Função para importar as audiências e cadastrar salas virtuais
     const handleImportarSalas = useCallback(async () => {
         setLoading(true);
         setProgress(0);
@@ -105,17 +101,66 @@ const EscalaConciliadores = () => {
                         if (response.ok) {
                             const dados = await response.json();
                             if (dados) {
-                                const infoExtraida = dados.map(item => ({
-                                    dataAudiencia: item.dataAudiencia,
-                                    sala: item.sala,
-                                    juizado_id: juizado_id
-                                }));
-                                if (infoExtraida.length > 0) {
-                                    if (!audienciasPorDia[juizado_id]) {
-                                        audienciasPorDia[juizado_id] = {};
+                                // Inverter a lógica: Primeiro, verificar e/ou inserir a sala virtual
+                                const audiencias = await Promise.all(dados.map(async item => {
+                                    const sala = item.sala;
+                                    if (sala) {
+                                        // 1. Verificar se a sala já existe
+                                        const verificarSalaResponse = await fetch(`${API_URL}/salasvirtuais/verificar`, {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/json',
+                                            },
+                                            body: JSON.stringify({ 
+                                                juizado_id: juizado_id, 
+                                                nome_sala_virtual: sala 
+                                            }),
+                                        });
+
+                                        const salaExiste = await verificarSalaResponse.json();
+
+                                        // 2. Se a sala não existir, cadastrar a sala virtual
+                                        let salaVirtualId;
+                                        if (!salaExiste.exists) {
+                                            const cadastrarSalaResponse = await fetch(`${API_URL}/salasvirtuais`, {
+                                                method: 'POST',
+                                                headers: {
+                                                    'Content-Type': 'application/json',
+                                                },
+                                                body: JSON.stringify({
+                                                    juizado_id: juizado_id,
+                                                    nome_sala_virtual: sala,
+                                                    tipo_pauta_id: 1 // Use o valor correto aqui se necessário
+                                                }),
+                                            });
+
+                                            const novaSala = await cadastrarSalaResponse.json();
+                                            salaVirtualId = novaSala.sala_virtual_id;
+                                        } else {
+                                            salaVirtualId = salaExiste.sala_virtual_id;
+                                        }
+
+                                        return {
+                                            dataAudiencia: item.dataAudiencia,
+                                            salaVirtualId,
+                                            juizado_id
+                                        };
                                     }
-                                    audienciasPorDia[juizado_id][data] = infoExtraida;
-                                }
+                                    return null;
+                                }));
+
+                                // Armazenar as audiências apenas se a sala virtual for válida
+                                audiencias.forEach(audiencia => {
+                                    if (audiencia && audiencia.salaVirtualId) {
+                                        if (!audienciasPorDia[juizado_id]) {
+                                            audienciasPorDia[juizado_id] = {};
+                                        }
+                                        if (!audienciasPorDia[juizado_id][data]) {
+                                            audienciasPorDia[juizado_id][data] = [];
+                                        }
+                                        audienciasPorDia[juizado_id][data].push(audiencia);
+                                    }
+                                });
                             }
                         } else {
                             console.error('Erro ao buscar dados:', response.status);
@@ -134,44 +179,7 @@ const EscalaConciliadores = () => {
             for (const [juizado_id, audiencias] of Object.entries(audienciasPorDia)) {
                 for (const [data, audienciasList] of Object.entries(audiencias)) {
                     for (const audiencia of audienciasList) {
-                        const { sala } = audiencia;
-
-                        // 1. Verificar se a sala já existe
-                        const verificarSalaResponse = await fetch(`${API_URL}/salasvirtuais/verificar`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({ 
-                                juizado_id: juizado_id, 
-                                nome_sala_virtual: sala 
-                            }),
-                        });
-
-                        const salaExiste = await verificarSalaResponse.json();
-
-                        // 2. Se a sala não existir, cadastrar a sala virtual
-                        let salaVirtualId;
-                        if (!salaExiste.exists) {
-                            const cadastrarSalaResponse = await fetch(`${API_URL}/salasvirtuais`, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({
-                                    juizado_id: juizado_id,
-                                    nome_sala_virtual: sala,
-                                    tipo_pauta_id: 1 // Use o valor correto aqui se necessário
-                                }),
-                            });
-
-                            const novaSala = await cadastrarSalaResponse.json();
-                            salaVirtualId = novaSala.sala_virtual_id;
-                        } else {
-                            salaVirtualId = salaExiste.sala_virtual_id;
-                        }
-
-                        // 3. Cadastrar a audiência
+                        // 3. Cadastrar a audiência com a sala virtual já validada
                         await fetch(`${API_URL}/audiencias`, {
                             method: 'POST',
                             headers: {
@@ -179,7 +187,7 @@ const EscalaConciliadores = () => {
                             },
                             body: JSON.stringify({
                                 juizado_id: juizado_id,
-                                sala_virtual_id: salaVirtualId,
+                                sala_virtual_id: audiencia.salaVirtualId,
                                 data_audiencia: data,
                                 status: 'Ativo'
                             }),
@@ -222,15 +230,15 @@ const EscalaConciliadores = () => {
     }, [mes, ano]);
 
     const diasDoMes = useMemo(() => {
-        return getDaysInMonth(mes, ano);
+        return new Date(ano, mes, 0).getDate();
     }, [mes, ano]);
 
     const currentMonthKey = `${ano}-${mes}`;
     const currentSchedule = schedule[currentMonthKey];
 
     // Verifica se existe alguma audiência agendada para o mês corrente
-    const hasScheduleData = currentSchedule && Object.keys(currentSchedule).some(juizado => {
-        return Object.keys(currentSchedule[juizado]).some(sala => currentSchedule[juizado][sala].some(date => {
+    const hasScheduleData = currentSchedule && Object.keys(currentSchedule).some(endpoint => {
+        return Object.keys(currentSchedule[endpoint]).some(sala => currentSchedule[endpoint][sala].some(date => {
             const audienciaMes = new Date(date).getMonth() + 1;
             return audienciaMes === mes;
         }));
@@ -256,7 +264,7 @@ const EscalaConciliadores = () => {
             </Row>
             {loading && (
                 <Modal
-                    open={loading}
+                    visible={loading}
                     footer={null}
                     closable={false}
                     centered
