@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Row, Col, Button, Modal, message, Progress, Select } from 'antd';
+import { Row, Col, Button, Modal, message, Progress } from 'antd';
 import EscalaNavigation from './EscalaNavigation';
 import EscalaTable from './EscalaTable';
 import './EscalaConciliadores.css';
-
-const { Option } = Select;
 
 const meses = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", 
@@ -20,27 +18,18 @@ const EscalaConciliadores = () => {
     const [loading, setLoading] = useState(false);
     const [progress, setProgress] = useState(0);
     const [loadedMonths, setLoadedMonths] = useState({});
-    const [juizados, setJuizados] = useState([]);
-    const [selectedJuizados, setSelectedJuizados] = useState([]);
-    const [isModalVisible, setIsModalVisible] = useState(false);
 
     const API_URL = 'http://localhost:3000/api'; // Base URL da sua API
 
     const fetchJuizados = useCallback(async () => {
         const response = await fetch(`${API_URL}/juizados`);
         if (response.ok) {
-            const data = await response.json();
-            setJuizados(data); // Armazena os juizados para o Select
-            return data;
+            return await response.json();
         } else {
             message.error('Erro ao buscar juizados.');
             return [];
         }
     }, [API_URL]);
-
-    useEffect(() => {
-        fetchJuizados(); // Carrega os juizados assim que o componente monta
-    }, [fetchJuizados]);
 
     const getDaysInMonth = useCallback((month, year) => {
         return new Date(year, month, 0).getDate();
@@ -56,17 +45,19 @@ const EscalaConciliadores = () => {
         return datas;
     }, []);
 
+    // Função para buscar a escala da API local
     const fetchEscalaFromAPI = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${API_URL}/audiencias`);
+            const response = await fetch(`${API_URL}/audiencias`); // Ajuste o endpoint conforme necessário
             if (response.ok) {
                 const data = await response.json();
-                const salasDict = {};
+                console.log('Dados da API:', data);
 
+                const salasDict = {};
                 data.forEach(audiencia => {
                     const { nome_sala_virtual, data_audiencia, nome_juizado } = audiencia;
-                    const endpoint = nome_juizado;
+                    const endpoint = nome_juizado; // ou outro identificador único se necessário
 
                     if (!salasDict[endpoint]) {
                         salasDict[endpoint] = {};
@@ -77,6 +68,7 @@ const EscalaConciliadores = () => {
                     salasDict[endpoint][nome_sala_virtual].push(data_audiencia);
                 });
 
+                console.log('Salas Dict:', salasDict);
                 setSchedule(prevSchedule => ({ ...prevSchedule, [`${ano}-${mes}`]: salasDict }));
                 setLoadedMonths(prevLoadedMonths => ({ ...prevLoadedMonths, [`${ano}-${mes}`]: true }));
             } else {
@@ -91,47 +83,45 @@ const EscalaConciliadores = () => {
     }, [mes, ano, API_URL]);
 
     const handleImportarSalas = useCallback(async () => {
-        if (selectedJuizados.length === 0) {
-            message.warning('Selecione pelo menos um juizado.');
-            return;
-        }
-
         setLoading(true);
         setProgress(0);
 
         try {
+            const juizados = await fetchJuizados();
             const datasDoMes = gerarDatasDoMes(ano, mes);
             const audienciasPorDia = {};
 
-            const totalRequests = datasDoMes.length * selectedJuizados.length;
+            const totalRequests = datasDoMes.length * juizados.length;
             let completedRequests = 0;
 
             for (const data of datasDoMes) {
-                const fetchPromises = selectedJuizados.map(async juizado_id => {
-                    const juizado = juizados.find(j => j.juizado_id === juizado_id);
-                    const { endpoint_id } = juizado;
+                const fetchPromises = juizados.map(async juizado => {
+                    const { juizado_id, endpoint_id } = juizado;
                     const url = `https://plenarios-api.tjmt.jus.br/consulta-pje/obter-pauta-audiencia/${data}/${endpoint_id}`;
                     try {
                         const response = await fetch(url);
                         if (response.ok) {
                             const dados = await response.json();
                             if (dados) {
+                                // Inverter a lógica: Primeiro, verificar e/ou inserir a sala virtual
                                 const audiencias = await Promise.all(dados.map(async item => {
                                     const sala = item.sala;
                                     if (sala) {
+                                        // 1. Verificar se a sala já existe
                                         const verificarSalaResponse = await fetch(`${API_URL}/salasvirtuais/verificar`, {
                                             method: 'POST',
                                             headers: {
                                                 'Content-Type': 'application/json',
                                             },
-                                            body: JSON.stringify({
-                                                juizado_id: juizado_id,
-                                                nome_sala_virtual: sala
+                                            body: JSON.stringify({ 
+                                                juizado_id: juizado_id, 
+                                                nome_sala_virtual: sala 
                                             }),
                                         });
 
                                         const salaExiste = await verificarSalaResponse.json();
 
+                                        // 2. Se a sala não existir, cadastrar a sala virtual
                                         let salaVirtualId;
                                         if (!salaExiste.exists) {
                                             const cadastrarSalaResponse = await fetch(`${API_URL}/salasvirtuais`, {
@@ -142,7 +132,7 @@ const EscalaConciliadores = () => {
                                                 body: JSON.stringify({
                                                     juizado_id: juizado_id,
                                                     nome_sala_virtual: sala,
-                                                    tipo_pauta_id: 1
+                                                    tipo_pauta_id: 1 // Use o valor correto aqui se necessário
                                                 }),
                                             });
 
@@ -161,6 +151,7 @@ const EscalaConciliadores = () => {
                                     return null;
                                 }));
 
+                                // Armazenar as audiências apenas se a sala virtual for válida
                                 audiencias.forEach(audiencia => {
                                     if (audiencia && audiencia.salaVirtualId) {
                                         if (!audienciasPorDia[juizado_id]) {
@@ -186,9 +177,11 @@ const EscalaConciliadores = () => {
                 await Promise.all(fetchPromises);
             }
 
+            // Inserção de dados no banco local
             for (const [juizado_id, audiencias] of Object.entries(audienciasPorDia)) {
                 for (const [data, audienciasList] of Object.entries(audiencias)) {
                     for (const audiencia of audienciasList) {
+                        // 3. Cadastrar a audiência com a sala virtual já validada
                         await fetch(`${API_URL}/audiencias`, {
                             method: 'POST',
                             headers: {
@@ -206,16 +199,19 @@ const EscalaConciliadores = () => {
             }
 
             message.success('Escala atualizada com sucesso!');
-            fetchEscalaFromAPI();
+            fetchEscalaFromAPI(); // Atualizar a tabela após a importação
 
         } catch (error) {
             console.error('Erro ao importar audiências:', error);
             message.error('Erro ao importar audiências.');
         } finally {
             setLoading(false);
-            setIsModalVisible(false);
         }
-    }, [API_URL, mes, ano, gerarDatasDoMes, fetchEscalaFromAPI, selectedJuizados, juizados]);
+    }, [API_URL, mes, ano, gerarDatasDoMes, fetchEscalaFromAPI, fetchJuizados]);
+
+    useEffect(() => {
+        fetchEscalaFromAPI();
+    }, [fetchEscalaFromAPI]);
 
     const handlePrevMonth = useCallback(() => {
         if (mes === 1) {
@@ -242,8 +238,9 @@ const EscalaConciliadores = () => {
     const currentMonthKey = `${ano}-${mes}`;
     const currentSchedule = schedule[currentMonthKey];
 
+    // Verifica se existe alguma audiência agendada para o mês corrente
     const hasScheduleData = currentSchedule && Object.keys(currentSchedule).some(endpoint => {
-        return Object.keys(currentSchedule[endpoint]).some(sala =>
+        return Object.keys(currentSchedule[endpoint]).some(sala => 
             currentSchedule[endpoint][sala].some(date => {
                 const audienciaMes = new Date(date).getMonth() + 1;
                 return audienciaMes === mes;
@@ -254,9 +251,9 @@ const EscalaConciliadores = () => {
     const filteredSchedule = useMemo(() => {
         if (!currentSchedule) return {};
         const filtered = {};
-
+        
         Object.keys(currentSchedule).forEach(endpoint => {
-            const salasComAudiencias = Object.keys(currentSchedule[endpoint]).filter(sala =>
+            const salasComAudiencias = Object.keys(currentSchedule[endpoint]).filter(sala => 
                 currentSchedule[endpoint][sala].some(date => {
                     const audienciaMes = new Date(date).getMonth() + 1;
                     return audienciaMes === mes;
@@ -269,36 +266,24 @@ const EscalaConciliadores = () => {
                 });
             }
         });
-
+        
         return filtered;
     }, [currentSchedule, mes]);
-
-    const openImportModal = () => {
-        setIsModalVisible(true);
-    };
-
-    const closeImportModal = () => {
-        setIsModalVisible(false);
-    };
-
-    const handleJuizadoChange = (value) => {
-        setSelectedJuizados(value);
-    };
 
     return (
         <div className="calendario-container">
             <Row justify="space-between" align="middle" style={{ marginBottom: 20 }}>
                 <Col><h2 style={{ margin: 0 }}>Escala das Salas Virtuais</h2></Col>
                 <Col style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
-                    <EscalaNavigation
-                        mes={mes}
-                        ano={ano}
-                        handlePrevMonth={handlePrevMonth}
-                        handleNextMonth={handleNextMonth}
+                    <EscalaNavigation 
+                        mes={mes} 
+                        ano={ano} 
+                        handlePrevMonth={handlePrevMonth} 
+                        handleNextMonth={handleNextMonth} 
                     />
                 </Col>
                 <Col>
-                    <Button type="primary" onClick={openImportModal}>
+                    <Button type="primary" onClick={handleImportarSalas}>
                         Atualizar Escala
                     </Button>
                 </Col>
@@ -330,28 +315,6 @@ const EscalaConciliadores = () => {
             ) : (
                 <p>Carregando escala...</p>
             )}
-
-            <Modal
-                title="Selecione os Juizados"
-                visible={isModalVisible}
-                onCancel={closeImportModal}
-                onOk={handleImportarSalas}
-                okText="Importar"
-            >
-                <Select
-                    mode="multiple"
-                    style={{ width: '100%' }}
-                    placeholder="Selecione os juizados"
-                    onChange={handleJuizadoChange}
-                    value={selectedJuizados}
-                >
-                    {juizados.map(juizado => (
-                        <Option key={juizado.juizado_id} value={juizado.juizado_id}>
-                            {juizado.nome_juizado}
-                        </Option>
-                    ))}
-                </Select>
-            </Modal>
         </div>
     );
 };
