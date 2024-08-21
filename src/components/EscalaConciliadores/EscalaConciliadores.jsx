@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Row, Col, Button, Modal, message, Progress } from 'antd';
+import { Row, Col, Button, Modal, message, Progress, Spin } from 'antd';
 import EscalaNavigation from './EscalaNavigation';
 import EscalaTable from './EscalaTable';
+import ImportarJuizadoModal from './ImportarJuizadoModal';
 import './EscalaConciliadores.css';
 
 const meses = [
@@ -18,14 +19,26 @@ const EscalaConciliadores = () => {
     const [loading, setLoading] = useState(false);
     const [progress, setProgress] = useState(0);
     const [loadedMonths, setLoadedMonths] = useState({});
+    const [juizados, setJuizados] = useState([]);
+    const [selectedJuizados, setSelectedJuizados] = useState([]);
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [isImporting, setIsImporting] = useState(false);
 
-    const API_URL = 'http://localhost:3000/api'; // Base URL da sua API
+    const API_URL = 'http://localhost:3000/api';
 
     const fetchJuizados = useCallback(async () => {
-        const response = await fetch(`${API_URL}/juizados`);
-        if (response.ok) {
-            return await response.json();
-        } else {
+        try {
+            const response = await fetch(`${API_URL}/juizados`);
+            if (response.ok) {
+                const data = await response.json();
+                setJuizados(data);
+                return data;
+            } else {
+                message.error('Erro ao buscar juizados.');
+                return [];
+            }
+        } catch (error) {
+            console.error('Erro ao buscar juizados:', error);
             message.error('Erro ao buscar juizados.');
             return [];
         }
@@ -45,20 +58,18 @@ const EscalaConciliadores = () => {
         return datas;
     }, []);
 
-    // Função para buscar a escala da API local
     const fetchEscalaFromAPI = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${API_URL}/audiencias`); // Ajuste o endpoint conforme necessário
+            const response = await fetch(`${API_URL}/audiencias`);
             if (response.ok) {
                 const data = await response.json();
-                console.log('Dados da API:', data);
-
                 const salasDict = {};
+    
                 data.forEach(audiencia => {
                     const { nome_sala_virtual, data_audiencia, nome_juizado } = audiencia;
-                    const endpoint = nome_juizado; // ou outro identificador único se necessário
-
+                    const endpoint = nome_juizado;
+    
                     if (!salasDict[endpoint]) {
                         salasDict[endpoint] = {};
                     }
@@ -67,8 +78,7 @@ const EscalaConciliadores = () => {
                     }
                     salasDict[endpoint][nome_sala_virtual].push(data_audiencia);
                 });
-
-                console.log('Salas Dict:', salasDict);
+    
                 setSchedule(prevSchedule => ({ ...prevSchedule, [`${ano}-${mes}`]: salasDict }));
                 setLoadedMonths(prevLoadedMonths => ({ ...prevLoadedMonths, [`${ano}-${mes}`]: true }));
             } else {
@@ -83,19 +93,29 @@ const EscalaConciliadores = () => {
     }, [mes, ano, API_URL]);
 
     const handleImportarSalas = useCallback(async () => {
-        setLoading(true);
+        await fetchJuizados();
+        setIsModalVisible(true);
+    }, [fetchJuizados]);
+
+    const handleModalOk = useCallback(async () => {
+        if (selectedJuizados.length === 0) {
+            message.warning('Por favor, selecione ao menos um juizado.');
+            return;
+        }
+
+        setIsImporting(true);
         setProgress(0);
+        setIsModalVisible(false);
 
         try {
-            const juizados = await fetchJuizados();
             const datasDoMes = gerarDatasDoMes(ano, mes);
             const audienciasPorDia = {};
 
-            const totalRequests = datasDoMes.length * juizados.length;
+            const totalRequests = datasDoMes.length * selectedJuizados.length;
             let completedRequests = 0;
 
             for (const data of datasDoMes) {
-                const fetchPromises = juizados.map(async juizado => {
+                const fetchPromises = selectedJuizados.map(async juizado => {
                     const { juizado_id, endpoint_id } = juizado;
                     const url = `https://plenarios-api.tjmt.jus.br/consulta-pje/obter-pauta-audiencia/${data}/${endpoint_id}`;
                     try {
@@ -103,11 +123,9 @@ const EscalaConciliadores = () => {
                         if (response.ok) {
                             const dados = await response.json();
                             if (dados) {
-                                // Inverter a lógica: Primeiro, verificar e/ou inserir a sala virtual
                                 const audiencias = await Promise.all(dados.map(async item => {
                                     const sala = item.sala;
                                     if (sala) {
-                                        // 1. Verificar se a sala já existe
                                         const verificarSalaResponse = await fetch(`${API_URL}/salasvirtuais/verificar`, {
                                             method: 'POST',
                                             headers: {
@@ -121,7 +139,6 @@ const EscalaConciliadores = () => {
 
                                         const salaExiste = await verificarSalaResponse.json();
 
-                                        // 2. Se a sala não existir, cadastrar a sala virtual
                                         let salaVirtualId;
                                         if (!salaExiste.exists) {
                                             const cadastrarSalaResponse = await fetch(`${API_URL}/salasvirtuais`, {
@@ -132,7 +149,7 @@ const EscalaConciliadores = () => {
                                                 body: JSON.stringify({
                                                     juizado_id: juizado_id,
                                                     nome_sala_virtual: sala,
-                                                    tipo_pauta_id: 1 // Use o valor correto aqui se necessário
+                                                    tipo_pauta_id: 1 
                                                 }),
                                             });
 
@@ -151,7 +168,6 @@ const EscalaConciliadores = () => {
                                     return null;
                                 }));
 
-                                // Armazenar as audiências apenas se a sala virtual for válida
                                 audiencias.forEach(audiencia => {
                                     if (audiencia && audiencia.salaVirtualId) {
                                         if (!audienciasPorDia[juizado_id]) {
@@ -177,11 +193,9 @@ const EscalaConciliadores = () => {
                 await Promise.all(fetchPromises);
             }
 
-            // Inserção de dados no banco local
             for (const [juizado_id, audiencias] of Object.entries(audienciasPorDia)) {
                 for (const [data, audienciasList] of Object.entries(audiencias)) {
                     for (const audiencia of audienciasList) {
-                        // 3. Cadastrar a audiência com a sala virtual já validada
                         await fetch(`${API_URL}/audiencias`, {
                             method: 'POST',
                             headers: {
@@ -199,37 +213,41 @@ const EscalaConciliadores = () => {
             }
 
             message.success('Escala atualizada com sucesso!');
-            fetchEscalaFromAPI(); // Atualizar a tabela após a importação
+            fetchEscalaFromAPI();
 
         } catch (error) {
             console.error('Erro ao importar audiências:', error);
             message.error('Erro ao importar audiências.');
         } finally {
-            setLoading(false);
+            setIsImporting(false);
         }
-    }, [API_URL, mes, ano, gerarDatasDoMes, fetchEscalaFromAPI, fetchJuizados]);
+    }, [API_URL, mes, ano, gerarDatasDoMes, fetchEscalaFromAPI, selectedJuizados]);
 
     useEffect(() => {
         fetchEscalaFromAPI();
     }, [fetchEscalaFromAPI]);
 
     const handlePrevMonth = useCallback(() => {
+        setLoading(true);
         if (mes === 1) {
             setMes(12);
             setAno(ano - 1);
         } else {
             setMes(mes - 1);
         }
-    }, [mes, ano]);
+        fetchEscalaFromAPI().then(() => setLoading(false));
+    }, [mes, ano, fetchEscalaFromAPI]);
 
     const handleNextMonth = useCallback(() => {
+        setLoading(true);
         if (mes === 12) {
             setMes(1);
             setAno(ano + 1);
         } else {
             setMes(mes + 1);
         }
-    }, [mes, ano]);
+        fetchEscalaFromAPI().then(() => setLoading(false));
+    }, [mes, ano, fetchEscalaFromAPI]);
 
     const diasDoMes = useMemo(() => {
         return new Date(ano, mes, 0).getDate();
@@ -238,7 +256,6 @@ const EscalaConciliadores = () => {
     const currentMonthKey = `${ano}-${mes}`;
     const currentSchedule = schedule[currentMonthKey];
 
-    // Verifica se existe alguma audiência agendada para o mês corrente
     const hasScheduleData = currentSchedule && Object.keys(currentSchedule).some(endpoint => {
         return Object.keys(currentSchedule[endpoint]).some(sala => 
             currentSchedule[endpoint][sala].some(date => {
@@ -289,18 +306,11 @@ const EscalaConciliadores = () => {
                 </Col>
             </Row>
             {loading && (
-                <Modal
-                    visible={loading}
-                    footer={null}
-                    closable={false}
-                    centered
-                >
-                    <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                        <Progress type="circle" percent={progress} />
-                    </div>
-                </Modal>
+                <div style={{ textAlign: 'center', margin: '20px 0' }}>
+                    <Spin tip="Carregando escala..." />
+                </div>
             )}
-            {loadedMonths[currentMonthKey] ? (
+            {!loading && loadedMonths[currentMonthKey] ? (
                 hasScheduleData ? (
                     <EscalaTable
                         salasDict={filteredSchedule}
@@ -313,8 +323,27 @@ const EscalaConciliadores = () => {
                     <p>Não há audiências agendadas para este mês.</p>
                 )
             ) : (
-                <p>Carregando escala...</p>
+                !loading && <p>Carregando escala...</p>
             )}
+            <ImportarJuizadoModal
+                visible={isModalVisible}
+                juizados={juizados}
+                selectedJuizados={selectedJuizados}
+                setSelectedJuizados={setSelectedJuizados}
+                onConfirm={handleModalOk}
+                onCancel={() => setIsModalVisible(false)}
+            />
+            <Modal
+                visible={isImporting}
+                footer={null}
+                closable={false}
+                centered
+            >
+                <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                    <Progress type="circle" percent={progress} />
+                    <p>Importando dados...</p>
+                </div>
+            </Modal>
         </div>
     );
 };
