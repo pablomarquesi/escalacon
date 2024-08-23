@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Collapse, List, Tooltip, Button, Calendar, Modal, Space } from 'antd';
+import { Collapse, List, Tooltip, Button, Calendar, Modal, Space, message } from 'antd';
 import { CalendarOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import HeaderSection from '../common/HeaderSection';
@@ -16,6 +16,8 @@ const AudienciaList = () => {
   const [searchText, setSearchText] = useState('');
   const [salas, setSalas] = useState([]);
   const [currentSalaIndex, setCurrentSalaIndex] = useState(0);
+  const [selectedMonth, setSelectedMonth] = useState(null);
+  const [selectedEndpoint, setSelectedEndpoint] = useState(null);
 
   useEffect(() => {
     const fetchAudiencias = async () => {
@@ -47,6 +49,33 @@ const AudienciaList = () => {
       return acc;
     }, {});
     setJuizados(grouped);
+  };
+
+  const handleImportarAudiencias = async () => {
+    if (!selectedMonth || !selectedEndpoint) {
+      message.warning('Por favor, selecione o mês e o endpoint.');
+      return;
+    }
+
+    const [ano, mes] = [selectedMonth.year(), selectedMonth.month() + 1];
+
+    try {
+      const response = await axios.post('http://localhost:3000/api/audiencias/importar', {
+        ano,
+        mes,
+        endpoint: selectedEndpoint, // O endpoint selecionado
+      });
+
+      if (response.status === 200) {
+        message.success('Audiências importadas com sucesso.');
+        fetchAudiencias(); // Recarrega as audiências para exibir na tela
+      } else {
+        message.error('Erro ao importar audiências.');
+      }
+    } catch (error) {
+      console.error('Erro ao importar audiências:', error);
+      message.error('Erro ao importar audiências.');
+    }
   };
 
   const showCalendarModal = (sala, audiencias, salaList, juizado) => {
@@ -148,6 +177,11 @@ const AudienciaList = () => {
             </Panel>
           ))}
         </Collapse>
+        <Space style={{ marginTop: '16px' }}>
+          <Button type="primary" onClick={handleImportarAudiencias}>
+            Importar Audiências
+          </Button>
+        </Space>
       </div>
       <Modal
         title={`Calendário de Audiências - ${selectedJuizado} `}  // Título modificado
